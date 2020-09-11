@@ -153,7 +153,7 @@ client.on('message', (receivedMessage) => {
     }
 })
 
-client.login("NzUzMTAxMDAyMzQwNTY1MTEz.X1hR9g.VqT5IUjiD9x_9hq8GWUrdc1sGug")
+client.login("")
 
 // IDEAS
 
