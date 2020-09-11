@@ -6,7 +6,7 @@ const client = new Discord.Client()
 
 const prefix = "!"
 
-client.on('ready', async() => { // async function allows the use of `await` to complete action before continuing
+client.on('ready', () => { // async function allows the use of `await` to complete action before continuing
     // List servers the bot is connected to
     console.log("Servers:")
     client.guilds.cache.forEach((guild) => {
@@ -31,10 +31,7 @@ client.on('ready', async() => { // async function allows the use of `await` to c
     generalChannel.send(welcomeEmbed)
 })
 
-var retrieved = null
-var obj = null // array of all users
-var userIndex = null // index in `obj` array of current user
-var user = null // reference to current user data
+
 
 client.on('message', (receivedMessage) => {
     // console.log(receivedMessage.author)
@@ -47,8 +44,13 @@ client.on('message', (receivedMessage) => {
 	const command = split[0]
     const args = split.slice(1)
 
-    var authorID = receivedMessage.author.id
-    retrieved = fs.readFileSync("./data.json", "utf8")
+    var curr = {
+        authorID:receivedMessage.author.id,
+        retrieved:fs.readFileSync("./data.json", "utf8"), // data file
+        obj:null, // array of all users from parsing file
+        userIndex:null, // index in `obj` array of current user
+        user:null, // reference to current user data
+    }
     
     if (command === "help") {
         const helpEmbed = new Discord.MessageEmbed()
@@ -62,7 +64,7 @@ client.on('message', (receivedMessage) => {
     } else if (command === "bank") {
         // if money above certain amount, react with "rich" or "poor"
         // receivedMessage.react("\:smile:")
-        user = getUser(authorID) // getUser
+        user = getUser(curr) // getUser
 
         var wealth = null
         if (user.money <= 0) {
@@ -95,7 +97,7 @@ client.on('message', (receivedMessage) => {
             const cointossEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Coin Toss")
-                .setDescription("**Command:** " + "!cointoss <betamount> <heads/tails>")
+                .setDescription("**Command:** " + "!cointoss <bet> <heads/tails>")
             receivedMessage.channel.send(cointossEmbed)
             return
         } else if (args[0] < 0) {
@@ -106,7 +108,7 @@ client.on('message', (receivedMessage) => {
             return
         }
 
-        user = getUser(authorID) // getUser
+        user = getUser(curr) // getUser
 
         if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
@@ -128,11 +130,11 @@ client.on('message', (receivedMessage) => {
             if (side === args[1]) {
                 won = "You Won a "
                 user.money = parseInt(args[0]) + parseInt(user.money)
-                fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
             } else {
                 won = "You Lost a "
                 user.money = parseInt(user.money) - parseInt(args[0])
-                fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
             }
 
             const results = new Discord.MessageEmbed()
@@ -164,10 +166,10 @@ client.on('message', (receivedMessage) => {
 
         var price = 0
         var item = null
-        if (parseInt(args[0]) === 1) {
+        if (args[0] == 1) { // already made sure value is an int, so dont need ===
             price = 35
             item = "Soap"
-        } else if (parseInt(args[0]) === 2) {
+        } else if (args[0] == 2) {
             price = 50
             item = "Toilet Paper"
         } else {
@@ -176,7 +178,7 @@ client.on('message', (receivedMessage) => {
         }
         
         var total = price * args[1]
-        user = getUser(authorID) // getUser
+        user = getUser(curr) // getUser
 
         if (total > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
@@ -184,19 +186,19 @@ client.on('message', (receivedMessage) => {
                 .setTitle("Too Poor")
             receivedMessage.channel.send(poorEmbed);
         } else {
-            if (parseInt(args[0]) === 1) {
+            if (args[0] == 1) {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
-            } else if (parseInt(args[0]) === 2) {
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+            } else if (args[0] == 2) {
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
             } else {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
             }
 
             const purchases = new Discord.MessageEmbed()
@@ -212,10 +214,10 @@ client.on('message', (receivedMessage) => {
     }
 })
 
-function getUser(authorID) {
-    if (retrieved === "") { // no users exist yet
+function getUser(curr) {
+    if (curr.retrieved === "") { // no users exist yet
         var person = {
-            id:authorID,
+            id:curr.authorID,
             money:1000,
             soap:0,
             toiletpaper:0,
@@ -223,44 +225,42 @@ function getUser(authorID) {
         var arr = [{...person}]
         fs.writeFileSync("./data.json", JSON.stringify(arr))
 
-        retrieved = fs.readFileSync("./data.json", "utf8")
-        obj = JSON.parse(retrieved)
-        userIndex = 0
+        curr.retrieved = fs.readFileSync("./data.json", "utf8")
+        curr.obj = JSON.parse(curr.retrieved)
+        curr.userIndex = 0
     } else { // check each existing user to find if current user exists
-        obj = JSON.parse(retrieved)
+        curr.obj = JSON.parse(curr.retrieved)
         var found = false
-        for (let i = 0; i < obj.length; i++) {
-            if (obj[i].id === authorID) { // if found
-                userIndex = i // set `userIndex` to current location
+        for (let i = 0; i < curr.obj.length; i++) {
+            if (curr.obj[i].id === curr.authorID) { // if found
+                curr.userIndex = i // set `userIndex` to current location
                 found = true
                 break
             }
         }
         if (!found) { // searched and still not found
             var person = {
-                id:authorID,
+                id:curr.authorID,
                 money:1000,
                 soap:0,
                 toiletpaper:0,
             }
-            obj.push({...person})
-            fs.writeFileSync("./data.json", JSON.stringify(obj))
+            curr.obj.push({...person})
+            fs.writeFileSync("./data.json", JSON.stringify(curr.obj))
 
-            retrieved = fs.readFileSync("./data.json", "utf8")
-            obj = JSON.parse(retrieved)
-            userIndex = obj.length - 1
+            curr.retrieved = fs.readFileSync("./data.json", "utf8")
+            curr.obj = JSON.parse(curr.retrieved)
+            curr.userIndex = curr.obj.length - 1
         }
     }
-    return obj[userIndex]
+    return curr.obj[curr.userIndex]
 }
 
-client.login("") // replace with token
+client.login("NzUzMTAxMDAyMzQwNTY1MTEz.X1hR9g.xDqCq6JsT-OyNG0A3ZQvy_VRbgk") // replace with token
 
 // IDEAS
 
 // !beg <user>
-// !buy <item>
-// !shop for items to buy
 // !work to do simple math problems
 // !leaderboard for top <something>
 
