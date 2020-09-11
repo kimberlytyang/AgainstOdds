@@ -31,6 +31,11 @@ client.on('ready', async() => { // async function allows the use of `await` to c
     generalChannel.send(welcomeEmbed)
 })
 
+var retrieved = null
+var obj = null // array of all users
+var userIndex = null // index in `obj` array of current user
+var user = null // reference to current user data
+
 client.on('message', (receivedMessage) => {
     // console.log(receivedMessage.author)
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
@@ -42,48 +47,9 @@ client.on('message', (receivedMessage) => {
 	const command = split[0]
     const args = split.slice(1)
 
-    var retrieved = fs.readFileSync("./data.json", "utf8")
-    var obj = null // array of all users
-    var userIndex = null // reference to current user data
-    if (retrieved === "") { // no users exist yet
-        var person = {
-            id:receivedMessage.author.id,
-            money:1000,
-            toiletpaper:0,
-            poop:0,
-        }
-        var arr = [{...person}]
-        fs.writeFileSync("./data.json", JSON.stringify(arr))
-
-        retrieved = fs.readFileSync("./data.json", "utf8")
-        obj = JSON.parse(retrieved)
-        userIndex = 0
-    } else { // check each existing user to find if current user exists
-        obj = JSON.parse(retrieved)
-        var found = false
-        for (let i = 0; i < obj.length; i++) {
-            if (obj[i].id === receivedMessage.author.id) { // if found
-                userIndex = i // set `userIndex` to current location
-                found = true
-                break
-            }
-        }
-        if (!found) { // searched and still not found
-            var person = {
-                id:receivedMessage.author.id,
-                money:1000,
-                toiletpaper:0,
-                poop:0,
-            }
-            obj.push({...person})
-            fs.writeFileSync("./data.json", JSON.stringify(obj))
-
-            retrieved = fs.readFileSync("./data.json", "utf8")
-            obj = JSON.parse(retrieved)
-            userIndex = obj.length - 1
-        }
-    }    
-
+    var authorID = receivedMessage.author.id
+    retrieved = fs.readFileSync("./data.json", "utf8")
+    
     if (command === "help") {
         const helpEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
@@ -96,20 +62,22 @@ client.on('message', (receivedMessage) => {
     } else if (command === "bank") {
         // if money above certain amount, react with "rich" or "poor"
         // receivedMessage.react("\:smile:")
+        user = getUser(authorID) // getUser
+
         var wealth = null
-        if (obj[userIndex].money <= 0) {
+        if (user.money <= 0) {
             wealth = "*maybe you should try working for once...*"
-        } else if (obj[userIndex].money < 100) {
+        } else if (user.money < 100) {
             wealth = "*dirt. poor.*"
-        } else if (obj[userIndex].money < 5000) {
+        } else if (user.money < 5000) {
             wealth = "*not doing great...*"
-        } else if (obj[userIndex].money < 25000) {
+        } else if (user.money < 25000) {
             wealth = "*kinda average...*"
-        } else if (obj[userIndex].money < 60000) {
+        } else if (user.money < 60000) {
             wealth = "*still not as rich as me...*"
-        } else if (obj[userIndex].money < 100000) {
+        } else if (user.money < 100000) {
             wealth = "*why do you have so much?*"
-        } else if (obj[userIndex].money < 500000) {
+        } else if (user.money < 500000) {
             wealth = "*go spend all this money...*"
         } else {
             wealth = "*stop trying so hard!*"
@@ -118,7 +86,7 @@ client.on('message', (receivedMessage) => {
         const helpEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
             .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
-            .setDescription("**Money:** $" + obj[userIndex].money + "\n**Toilet Paper:** " + obj[userIndex].toiletpaper + "\n**Poop:** " + obj[userIndex].poop)
+            .setDescription("**Money:** $" + user.money + "\n<:soap:754085455791915108>: " + user.soap + "\n<:roll_of_paper:753943988754710608>: " + user.toiletpaper)
         
         receivedMessage.channel.send(helpEmbed);
         receivedMessage.channel.send(wealth);
@@ -128,17 +96,23 @@ client.on('message', (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Coin Toss")
                 .setDescription("**Command:** " + "!cointoss <betamount> <heads/tails>")
-            receivedMessage.channel.send(cointossEmbed);
-        } else if (args[0] > obj[userIndex].money) {
+            receivedMessage.channel.send(cointossEmbed)
+            return
+        } else if (args[0] < 0) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Bet")
+            receivedMessage.channel.send(boundsEmbed)
+            return
+        }
+
+        user = getUser(authorID) // getUser
+
+        if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Too Poor")
-            receivedMessage.channel.send(poorEmbed);
-        } else if (args[0] < 0) {
-            const invalidEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Invalid Bet")
-            receivedMessage.channel.send(invalidEmbed);
+            receivedMessage.channel.send(poorEmbed)
         } else {
             var flip = Math.floor(Math.random() * 2)
             var side = null
@@ -153,11 +127,11 @@ client.on('message', (receivedMessage) => {
             var won = null
             if (side === args[1]) {
                 won = "You Won a "
-                obj[userIndex].money = parseInt(args[0]) + parseInt(obj[userIndex].money)
+                user.money = parseInt(args[0]) + parseInt(user.money)
                 fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
             } else {
                 won = "You Lost a "
-                obj[userIndex].money = parseInt(obj[userIndex].money) - parseInt(args[0])
+                user.money = parseInt(user.money) - parseInt(args[0])
                 fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
             }
 
@@ -165,9 +139,9 @@ client.on('message', (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "Landed on: `" + side + "`\n" + won + "$" + args[0] + " Bet!", value: "New Balance: $" + obj[userIndex].money, },
+                    { name: "Landed on: `" + side + "`\n" + won + "$" + args[0] + " Bet!", value: "New Balance: $" + user.money, },
                 )
-            receivedMessage.channel.send(results);
+            receivedMessage.channel.send(results)
         }
         
         // is there a way to wait for response and take it in
@@ -176,57 +150,60 @@ client.on('message', (receivedMessage) => {
             const shopEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** \n" + "!shop <itemnumber> <quantity>" + "\n**1) <:roll_of_paper:753943988754710608>   Toilet Paper   $50**\n**2) <:poop:753944822233956389>   Poop   $25**\n**Special Bundle**\n**3) <:roll_of_paper:753943988754710608>  +  <:poop:753944822233956389> for $60**")
-            receivedMessage.channel.send(shopEmbed);
+                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $35 `Soap` <:soap:754085455791915108>**\n**2) $50 `Toilet Paper` <:roll_of_paper:753943988754710608>**\n**3) $75 `Special Bundle` <:roll_of_paper:753943988754710608> + <:soap:754085455791915108>**")
+                .setFooter("Stock up on items for quarantine!")
+            receivedMessage.channel.send(shopEmbed)
             return
         } else if (args[0] < 1 || args[0] > 3) {
             const boundsEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
-                .setTitle("Invalid Bet")
-            receivedMessage.channel.send(boundsEmbed);
+                .setTitle("Invalid Item")
+            receivedMessage.channel.send(boundsEmbed)
             return
         }
 
         var price = 0
         var item = null
         if (parseInt(args[0]) === 1) {
+            price = 35
+            item = "Soap"
+        } else if (parseInt(args[0]) === 2) {
             price = 50
             item = "Toilet Paper"
-        } else if (parseInt(args[0]) === 2) {
-            price = 25
-            item = "Poop"
         } else {
-            price = 60
+            price = 75
             item = "Special Bundle"
         }
         
         var total = price * args[1]
-        if (total > obj[userIndex].money) {
+        user = getUser(authorID) // getUser
+
+        if (total > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Too Poor")
             receivedMessage.channel.send(poorEmbed);
         } else {
             if (parseInt(args[0]) === 1) {
-                obj[userIndex].toiletpaper = parseInt(obj[userIndex].toiletpaper) + parseInt(args[1])
-                obj[userIndex].money = parseInt(obj[userIndex].money) - parseInt(total)
+                user.soap = parseInt(user.soap) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
                 fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
             } else if (parseInt(args[0]) === 2) {
-                obj[userIndex].poop = parseInt(obj[userIndex].poop) + parseInt(args[1])
-                obj[userIndex].money = parseInt(obj[userIndex].money) - parseInt(total)
+                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
                 fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
             } else {
-                obj[userIndex].toiletpaper = parseInt(obj[userIndex].toiletpaper) + parseInt(args[1])
-                obj[userIndex].poop = parseInt(obj[userIndex].poop) + parseInt(args[1])
-                obj[userIndex].money = parseInt(obj[userIndex].money) - parseInt(total)
+                user.soap = parseInt(user.soap) + parseInt(args[1])
+                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
                 fs.writeFileSync("./data.json", JSON.stringify(obj)) // update balance
             }
 
             const purchases = new Discord.MessageEmbed()
                 .setColor("#ce2228")
-                .setTitle("<:moneybag:753937876399685653>   Purchase   <:moneybag:753937876399685653>")
+                .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "You bought `" + item + "` x" + args[1], value: "New Balance: $" + obj[userIndex].money + "\nThank you for coming <:woman_bowing:753954248764686379>", },
+                    { name: "You bought `" + item + "` x" + args[1], value: "New Balance: $" + user.money + "\nThank you for coming <:woman_bowing:753954248764686379>", },
                 )
             receivedMessage.channel.send(purchases);
         }
@@ -234,6 +211,48 @@ client.on('message', (receivedMessage) => {
         console.log("Message received: " + receivedMessage.content)
     }
 })
+
+function getUser(authorID) {
+    if (retrieved === "") { // no users exist yet
+        var person = {
+            id:authorID,
+            money:1000,
+            soap:0,
+            toiletpaper:0,
+        }
+        var arr = [{...person}]
+        fs.writeFileSync("./data.json", JSON.stringify(arr))
+
+        retrieved = fs.readFileSync("./data.json", "utf8")
+        obj = JSON.parse(retrieved)
+        userIndex = 0
+    } else { // check each existing user to find if current user exists
+        obj = JSON.parse(retrieved)
+        var found = false
+        for (let i = 0; i < obj.length; i++) {
+            if (obj[i].id === authorID) { // if found
+                userIndex = i // set `userIndex` to current location
+                found = true
+                break
+            }
+        }
+        if (!found) { // searched and still not found
+            var person = {
+                id:authorID,
+                money:1000,
+                soap:0,
+                toiletpaper:0,
+            }
+            obj.push({...person})
+            fs.writeFileSync("./data.json", JSON.stringify(obj))
+
+            retrieved = fs.readFileSync("./data.json", "utf8")
+            obj = JSON.parse(retrieved)
+            userIndex = obj.length - 1
+        }
+    }
+    return obj[userIndex]
+}
 
 client.login("") // replace with token
 
