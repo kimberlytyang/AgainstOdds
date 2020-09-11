@@ -28,40 +28,6 @@ client.on('ready', async() => { // async function allows the use of `await` to c
         .setFooter("!help for how to play")
 
     generalChannel.send(welcomeEmbed)
-
-    // var retrievedempty = fs.readFileSync("./data.json", "utf8")
-    // console.log(retrievedempty)
-
-    // var person = {
-    //     firstName: "John",
-    //     lastName:"Doe",
-    //     age:50,
-    //     eyeColor:"blue"
-    // }
-    // var person2 = {
-    //     firstName: "Phil",
-    //     lastName:"Doe",
-    //     age:12,
-    //     eyeColor:"blue"
-    // }
-    // var everyone = [{...person}, {...person2}]
-    // console.log(everyone)
-    // fs.writeFileSync("./data.json", JSON.stringify(everyone))
-    // var retrieved = fs.readFileSync("./data.json", "utf8")
-    // if (retrieved === "") {
-    //     var arr = [{...person}]
-    //     fs.writeFileSync("./data.json", JSON.stringify(arr))
-    // }
-    // else {
-    //     var obj = JSON.parse(retrieved)
-    //     obj.push({...person2})
-    //     fs.writeFileSync("./data.json", JSON.stringify(obj))
-    // }
-
-    // await generalChannel.send("---------------------------------------------------")
-    // const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
-    // await generalChannel.send(localFileAttachment)
-    // await generalChannel.send("---------  Welcome to AgainstOdds!  ---------")
 })
 
 client.on('message', (receivedMessage) => {
@@ -70,13 +36,18 @@ client.on('message', (receivedMessage) => {
         return
     }
 
+    const withoutPrefix = receivedMessage.content.slice(prefix.length)
+	const split = withoutPrefix.split(" ")
+	const command = split[0]
+    const args = split.slice(1)
+
     var retrieved = fs.readFileSync("./data.json", "utf8")
     var obj = null // array of all users
     var userIndex = null // reference to current user data
     if (retrieved === "") { // no users exist yet
         var person = {
             id:receivedMessage.author.id,
-            money:100,
+            money:1000,
         }
         var arr = [{...person}]
         fs.writeFileSync("./data.json", JSON.stringify(arr))
@@ -94,10 +65,10 @@ client.on('message', (receivedMessage) => {
                 break
             }
         }
-        if (!found) {
+        if (!found) { // searched and still not found
             var person = {
                 id:receivedMessage.author.id,
-                money:100,
+                money:1000,
             }
             obj.push({...person})
             fs.writeFileSync("./data.json", JSON.stringify(obj))
@@ -106,15 +77,7 @@ client.on('message', (receivedMessage) => {
             obj = JSON.parse(retrieved)
             userIndex = obj.length - 1
         }
-    }
-    
-    // var retrieved = fs.readFileSync("./data.json", "utf8")
-    
-
-	const withoutPrefix = receivedMessage.content.slice(prefix.length)
-	const split = withoutPrefix.split(" ")
-	const command = split[0]
-    const args = split.slice(1)
+    }    
 
     if (command === "help") {
         const helpEmbed = new Discord.MessageEmbed()
@@ -129,21 +92,38 @@ client.on('message', (receivedMessage) => {
     } else if (command === "bank") {
         // if money above certain amount, react with "rich" or "poor"
         // receivedMessage.react("\:smile:")
+        var wealth = null
+        if (obj[userIndex].money <= 0) {
+            wealth = "maybe you should try working for once"
+        } else if (obj[userIndex].money < 100) {
+            wealth = "*dirt. poor.*"
+        } else if (obj[userIndex].money < 5000) {
+            wealth = "*not doing great...*"
+        } else if (obj[userIndex].money < 25000) {
+            wealth = "*kinda average...*"
+        } else if (obj[userIndex].money < 60000) {
+            wealth = "*still not as rich as me...*"
+        } else if (obj[userIndex].money < 100000) {
+            wealth = "*why do you have so much?*"
+        } else if (obj[userIndex].money < 500000) {
+            wealth = "*go spend all this money...*"
+        } else {
+            wealth = "*stop trying so hard!*"
+        }
+
         const helpEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
-            .setTitle(receivedMessage.author.username + "\'s Bank")
-            .addFields(
-                { name: "$321", value: "nothing.", },
-            )
-        // how do i store user information
+            .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
+            .setDescription("Money: $" + obj[userIndex].money)
         
         receivedMessage.channel.send(helpEmbed);
+        receivedMessage.channel.send(wealth);
     } else if (command === "cointoss") {
         const cointossEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
             .setTitle("Coin Toss")
             .addFields(
-                { name: "Commands", value: "`!cointoss <betamount> <heads/tails>", },
+                { name: "Command", value: "`!cointoss <betamount> <heads/tails>", },
             )
         // is there a way to wait for response and take it in
         
