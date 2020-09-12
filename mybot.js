@@ -17,9 +17,7 @@ client.on('ready', () => { // async function allows the use of `await` to comple
         })
     })
 
-    var generalChannel = client.channels.cache.get("753105145209815131") // Known channel ID
-
-    //const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
+    // var generalChannel = client.channels.cache.get("753105145209815131") // Known channel ID
     const welcomeEmbed = new Discord.MessageEmbed()
         .setColor("#ce2228")
         .setTitle("---------  Welcome to AgainstOdds!  ---------")
@@ -27,8 +25,28 @@ client.on('ready', () => { // async function allows the use of `await` to comple
         .setImage('attachment://dice.png')
         .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
         .setFooter("!help for how to play")
-
-    generalChannel.send(welcomeEmbed)
+        
+    var channelExists = false
+    client.guilds.cache.forEach((guild) => {
+        guild.channels.cache.some((channel) => {
+            console.log(channel.id)
+            if (channel.name == "againstodds" && channel.type == "text") { // if channel exists, send here
+                channelExists = true
+                var textChannel = client.channels.cache.get(channel.id)
+                textChannel.send(welcomeEmbed)
+                return true
+            }
+        })
+        
+        if (!channelExists) { // create channel, then send here
+            guild.channels.create("againstodds", { type: "text" }).then((result) => {
+                var textChannel = client.channels.cache.get(result.id)
+                textChannel.send(welcomeEmbed)
+            })
+        }
+    })
+    console.log("done")
+    //const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
 })
 
 client.on('message', (receivedMessage) => {
@@ -261,5 +279,9 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // !beg <user>
 // !work to do simple math problems
 // !leaderboard for top <something>
+// implement easier way to see if you won visually with check or X emojis
+// how to separate into different functions/files
+// implement deck of cards
+// sotre user data with map? or id as property name?
 
 // difference between file parsing with node vs just json parsing
