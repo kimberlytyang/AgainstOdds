@@ -1,6 +1,6 @@
 const fs = require('fs')
 const Discord = require('discord.js')
-const { parse } = require('path')
+require('dotenv').config()
 const attachment = new Discord.MessageAttachment('cbcfilter.png')
 const client = new Discord.Client()
 
@@ -30,8 +30,6 @@ client.on('ready', () => { // async function allows the use of `await` to comple
 
     generalChannel.send(welcomeEmbed)
 })
-
-
 
 client.on('message', (receivedMessage) => {
     // console.log(receivedMessage.author)
@@ -256,7 +254,7 @@ function getUser(curr) {
     return curr.obj[curr.userIndex]
 }
 
-client.login("NzUzMTAxMDAyMzQwNTY1MTEz.X1hR9g.xDqCq6JsT-OyNG0A3ZQvy_VRbgk") // replace with token
+client.login(process.env.CLIENT_TOKEN) // replace with token
 
 // IDEAS
 
