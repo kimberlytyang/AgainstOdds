@@ -18,13 +18,6 @@ client.on('ready', () => { // async function allows the use of `await` to comple
     })
 
     // var generalChannel = client.channels.cache.get("753105145209815131") // Known channel ID
-    // const welcomeEmbed = new Discord.MessageEmbed()
-    //     .setColor("#ce2228")
-    //     .setTitle("---------  Welcome to AgainstOdds!  ---------")
-    //     .attachFiles(['./res/dice.png'])
-    //     .setImage('attachment://dice.png')
-    //     .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
-    //     .setFooter("!help for how to play")
         
     client.guilds.cache.forEach((guild) => {
         sendWelcome(guild)
@@ -89,9 +82,9 @@ client.on('message', (receivedMessage) => {
             .setTitle("Help Menu")
             .addFields(
                 { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`", },
-                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`", },
+                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
             )
-        receivedMessage.channel.send(helpEmbed);
+        receivedMessage.channel.send(helpEmbed)
     } else if (command === "bank") {
         // if money above certain amount, react with "rich" or "poor"
         // receivedMessage.react("\:smile:")
@@ -100,7 +93,7 @@ client.on('message', (receivedMessage) => {
         var wealth = null
         if (user.money <= 0) {
             wealth = "*maybe you should try working for once...*"
-        } else if (user.money < 100) {
+        } else if (user.money < 500) {
             wealth = "*dirt. poor.*"
         } else if (user.money < 5000) {
             wealth = "*not doing great...*"
@@ -121,8 +114,89 @@ client.on('message', (receivedMessage) => {
             .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
             .setDescription("**Money:** $" + user.money + "\n<:soap:754085455791915108>: " + user.soap + "\n<:roll_of_paper:753943988754710608>: " + user.toiletpaper)
         
-        receivedMessage.channel.send(helpEmbed);
-        receivedMessage.channel.send(wealth);
+        receivedMessage.channel.send(helpEmbed)
+        receivedMessage.channel.send(wealth)
+    } else if (command === "shop") {
+        if (args.length != 2 || !parseInt(args[0]) || !parseInt(args[1])) {
+            const shopEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
+                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $35 `Soap` <:soap:754085455791915108>**\n**2) $50 `Toilet Paper` <:roll_of_paper:753943988754710608>**\n**3) $75 `Special Bundle` <:roll_of_paper:753943988754710608> + <:soap:754085455791915108>**")
+                .setFooter("Stock up on items for quarantine!")
+            receivedMessage.channel.send(shopEmbed)
+            return
+        } else if (args[0] < 1 || args[0] > 3) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Item")
+            receivedMessage.channel.send(boundsEmbed)
+            return
+        }
+
+        var price = 0
+        var item = null
+        if (args[0] == 1) { // already made sure value is an int, so dont need ===
+            price = 35
+            item = "Soap"
+        } else if (args[0] == 2) {
+            price = 50
+            item = "Toilet Paper"
+        } else {
+            price = 75
+            item = "Special Bundle"
+        }
+        
+        var total = price * args[1]
+        user = getUser(curr) // getUser
+
+        if (total > user.money) {
+            const poorEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Too Poor")
+            receivedMessage.channel.send(poorEmbed)
+        } else {
+            if (args[0] == 1) {
+                user.soap = parseInt(user.soap) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+            } else if (args[0] == 2) {
+                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+            } else {
+                user.soap = parseInt(user.soap) + parseInt(args[1])
+                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
+                user.money = parseInt(user.money) - parseInt(total)
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+            }
+
+            const purchases = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
+                .addFields(
+                    { name: "You bought `" + item + "` x" + args[1], value: "New Balance: $" + user.money + "\nThank you for coming <:woman_bowing:753954248764686379>", },
+                )
+            receivedMessage.channel.send(purchases)
+        }
+    } else if (command === "beg") {
+        user = getUser(curr) // getUser
+        if (user.money > 300) { // if bank is > $300, deny from begging
+            const begEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:dollar:754245592661884949>   Federal Reserve   <:dollar:754245592661884949>")
+                .setDescription("There is enough money in your bank.\nYou have been denied by the Fed.")
+            receivedMessage.channel.send(begEmbed)
+        } else {
+            var randMoney = Math.floor(Math.random() * 150) + 51
+            user.money = parseInt(user.money) + parseInt(randMoney)
+            fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+
+            const begEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:dollar:754245592661884949>   Federal Reserve   <:dollar:754245592661884949>")
+                .setDescription("You begged the Federal Reserve and got $" + randMoney + ".")
+            receivedMessage.channel.send(begEmbed)
+        }
     } else if (command === "cointoss") {
         if (args.length != 2 || !parseInt(args[0]) || (args[1] != "heads" && args[1] != "tails")) {
             const cointossEmbed = new Discord.MessageEmbed()
@@ -175,68 +249,6 @@ client.on('message', (receivedMessage) => {
                     { name: "Landed on: `" + side + "`\n" + won + "$" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
                 )
             receivedMessage.channel.send(results)
-        }
-    } else if (command === "shop") {
-        if (args.length != 2 || !parseInt(args[0]) || !parseInt(args[1])) {
-            const shopEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $35 `Soap` <:soap:754085455791915108>**\n**2) $50 `Toilet Paper` <:roll_of_paper:753943988754710608>**\n**3) $75 `Special Bundle` <:roll_of_paper:753943988754710608> + <:soap:754085455791915108>**")
-                .setFooter("Stock up on items for quarantine!")
-            receivedMessage.channel.send(shopEmbed)
-            return
-        } else if (args[0] < 1 || args[0] > 3) {
-            const boundsEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Invalid Item")
-            receivedMessage.channel.send(boundsEmbed)
-            return
-        }
-
-        var price = 0
-        var item = null
-        if (args[0] == 1) { // already made sure value is an int, so dont need ===
-            price = 35
-            item = "Soap"
-        } else if (args[0] == 2) {
-            price = 50
-            item = "Toilet Paper"
-        } else {
-            price = 75
-            item = "Special Bundle"
-        }
-        
-        var total = price * args[1]
-        user = getUser(curr) // getUser
-
-        if (total > user.money) {
-            const poorEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Too Poor")
-            receivedMessage.channel.send(poorEmbed);
-        } else {
-            if (args[0] == 1) {
-                user.soap = parseInt(user.soap) + parseInt(args[1])
-                user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
-            } else if (args[0] == 2) {
-                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
-                user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
-            } else {
-                user.soap = parseInt(user.soap) + parseInt(args[1])
-                user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
-                user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
-            }
-
-            const purchases = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
-                .addFields(
-                    { name: "You bought `" + item + "` x" + args[1], value: "New Balance: $" + user.money + "\nThank you for coming <:woman_bowing:753954248764686379>", },
-                )
-            receivedMessage.channel.send(purchases);
         }
     } else {
         console.log("Message received: " + receivedMessage.content)
