@@ -18,6 +18,25 @@ client.on('ready', () => { // async function allows the use of `await` to comple
     })
 
     // var generalChannel = client.channels.cache.get("753105145209815131") // Known channel ID
+    // const welcomeEmbed = new Discord.MessageEmbed()
+    //     .setColor("#ce2228")
+    //     .setTitle("---------  Welcome to AgainstOdds!  ---------")
+    //     .attachFiles(['./res/dice.png'])
+    //     .setImage('attachment://dice.png')
+    //     .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
+    //     .setFooter("!help for how to play")
+        
+    client.guilds.cache.forEach((guild) => {
+        sendWelcome(guild)
+    })
+    //const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
+})
+
+client.on("guildCreate", (guild) => {
+    sendWelcome(guild)
+})
+
+function sendWelcome(guild) { // send on restart or add to new server
     const welcomeEmbed = new Discord.MessageEmbed()
         .setColor("#ce2228")
         .setTitle("---------  Welcome to AgainstOdds!  ---------")
@@ -25,29 +44,25 @@ client.on('ready', () => { // async function allows the use of `await` to comple
         .setImage('attachment://dice.png')
         .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
         .setFooter("!help for how to play")
-        
+
     var channelExists = false
-    client.guilds.cache.forEach((guild) => {
-        guild.channels.cache.some((channel) => {
-            console.log(channel.id)
-            if (channel.name == "againstodds" && channel.type == "text") { // if channel exists, send here
-                channelExists = true
-                var textChannel = client.channels.cache.get(channel.id)
-                textChannel.send(welcomeEmbed)
-                return true
-            }
-        })
-        
-        if (!channelExists) { // create channel, then send here
-            guild.channels.create("againstodds", { type: "text" }).then((result) => {
-                var textChannel = client.channels.cache.get(result.id)
-                textChannel.send(welcomeEmbed)
-            })
+    guild.channels.cache.some((channel) => {
+        // console.log(channel.id)
+        if (channel.name == "againstodds" && channel.type == "text") { // if againstodds channel exists, send here
+            channelExists = true
+            var textChannel = client.channels.cache.get(channel.id)
+            textChannel.send(welcomeEmbed)
+            return true
         }
     })
-    console.log("done")
-    //const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
-})
+        
+    if (!channelExists) { // create againstodds channel, then send here
+        guild.channels.create("againstodds", { type: "text" }).then((result) => {
+            var textChannel = client.channels.cache.get(result.id)
+            textChannel.send(welcomeEmbed)
+        })
+    }
+}
 
 client.on('message', (receivedMessage) => {
     // console.log(receivedMessage.author)
@@ -157,12 +172,10 @@ client.on('message', (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "Landed on: `" + side + "`\n" + won + "$" + args[0] + " Bet!", value: "New Balance: $" + user.money, },
+                    { name: "Landed on: `" + side + "`\n" + won + "$" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
                 )
             receivedMessage.channel.send(results)
         }
-        
-        // is there a way to wait for response and take it in
     } else if (command === "shop") {
         if (args.length != 2 || !parseInt(args[0]) || !parseInt(args[1])) {
             const shopEmbed = new Discord.MessageEmbed()
@@ -284,4 +297,5 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // implement deck of cards
 // sotre user data with map? or id as property name?
 
+// is there a way to wait for response and take it in
 // difference between file parsing with node vs just json parsing
