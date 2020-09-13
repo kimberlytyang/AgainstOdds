@@ -158,16 +158,16 @@ client.on('message', (receivedMessage) => {
             if (args[0] == 1) {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
             } else if (args[0] == 2) {
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
             } else {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
             }
 
             const purchases = new Discord.MessageEmbed()
@@ -187,9 +187,9 @@ client.on('message', (receivedMessage) => {
                 .setDescription("There is enough money in your bank.\nYou have been denied by the Fed.")
             receivedMessage.channel.send(begEmbed)
         } else {
-            var randMoney = Math.floor(Math.random() * 150) + 51
+            var randMoney = Math.floor(Math.random() * 21) * 10 + 300
             user.money = parseInt(user.money) + parseInt(randMoney)
-            fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+            fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
 
             const begEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
@@ -235,11 +235,11 @@ client.on('message', (receivedMessage) => {
             if (side === args[1]) {
                 won = "You Won a "
                 user.money = parseInt(args[0]) + parseInt(user.money)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
             } else {
                 won = "You Lost a "
                 user.money = parseInt(user.money) - parseInt(args[0])
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
             }
 
             const results = new Discord.MessageEmbed()
@@ -264,7 +264,7 @@ function getUser(curr) {
             toiletpaper:0,
         }
         var arr = [{...person}]
-        fs.writeFileSync("./data.json", JSON.stringify(arr))
+        fs.writeFileSync("./data.json", JSON.stringify(arr, null, 2))
 
         curr.retrieved = fs.readFileSync("./data.json", "utf8")
         curr.obj = JSON.parse(curr.retrieved)
@@ -287,7 +287,7 @@ function getUser(curr) {
                 toiletpaper:0,
             }
             curr.obj.push({...person})
-            fs.writeFileSync("./data.json", JSON.stringify(curr.obj))
+            fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2))
 
             curr.retrieved = fs.readFileSync("./data.json", "utf8")
             curr.obj = JSON.parse(curr.retrieved)
