@@ -188,17 +188,17 @@ module.exports = {
         } else {
             let randCard = deck[Math.floor(Math.random() * 52)]
             var result = null
-            if (randCard.suit === args[2]) { // correct suit
+            if (randCard.suit === args[2] && randCard.value === args[1]) { // correct suit and value
+                result = "You won a `50x` on a $" + parseInt(args[0]) + " Bet!!!"
+                user.money = parseInt(user.money) + (parseInt(args[0]) * 49)
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+            } else if (randCard.suit === args[2]) { // correct suit
                 result = "You won `3x` on a $" + parseInt(args[0]) + " Bet!"
                 user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
             } else if (randCard.value === args[1]) { // correct value
                 result = "You won `10x` on a $" + parseInt(args[0]) + " Bet!!"
                 user.money = parseInt(user.money) + (parseInt(args[0]) * 9)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            } else if (randCard.suit === args[2] && randCard.value === args[1]) { // correct suit and value
-                result = "You won a `50x` on a $" + parseInt(args[0]) + " Bet!!!"
-                user.money = parseInt(user.money) + (parseInt(args[0]) * 49)
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
             } else {
                 result = "You lost a $" + parseInt(args[0]) + " Bet!"
