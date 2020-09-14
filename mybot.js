@@ -1,14 +1,14 @@
 const fs = require('fs')
 const Discord = require('discord.js')
+const options = require('./options.js')
 require('dotenv').config()
 const client = new Discord.Client()
-const options = require('./options.js')
 // const attachment = new Discord.MessageAttachment('cbcfilter.png')
 
 const prefix = "!"
 var userBase = {} // holds all user data from file
 
-client.on('ready', () => { // async function allows the use of `await` to complete action before continuing
+client.on("ready", () => { // async function allows the use of `await` to complete action before continuing
     // List servers the bot is connected to
     console.log("Servers:")
     client.guilds.cache.forEach((guild) => {
@@ -18,14 +18,13 @@ client.on('ready', () => { // async function allows the use of `await` to comple
             console.log("    - " + channel.name + " (" + channel.type + ") - " + channel.id)
         })
     })
-
-    // var generalChannel = client.channels.cache.get("753105145209815131") // Known channel ID
         
     client.guilds.cache.forEach((guild) => {
         sendWelcome(guild)
     })
     
     initUserBase()
+    initDeck()
 
     // const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
 })
@@ -38,14 +37,13 @@ function sendWelcome(guild) { // send on restart or add to new server
     const welcomeEmbed = new Discord.MessageEmbed()
         .setColor("#ce2228")
         .setTitle("---------  Welcome to AgainstOdds!  ---------")
-        .attachFiles(['./res/dice.png'])
+        .attachFiles(["./res/dice.png"])
         .setImage("attachment://dice.png")
         .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
         .setFooter("!help for how to play")
 
     var channelExists = false
     guild.channels.cache.some((channel) => {
-        // console.log(channel.id)
         if (channel.name == "againstodds" && channel.type == "text") { // if againstodds channel exists, send here
             channelExists = true
             var textChannel = client.channels.cache.get(channel.id)
@@ -69,8 +67,29 @@ function initUserBase() {
     }
 }
 
+function initDeck() {
+    var deck = []
+    let values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+    let suits = ["spades", "clubs", "diamonds", "hearts"]
+    let countVal = 1
+
+    for (let i = 0; i < values.length; i++) {
+        for (let k = 0; k < suits.length; k++) {
+            let card = {
+                numeric:countVal,
+                value:values[i],
+                suit:suits[k],
+            }
+            deck.push(card)
+        }
+        countVal++
+    }
+
+    fs.writeFileSync("./deck.json", JSON.stringify(deck, null, 4))
+}
+
 function getUser(authorID) {
-    if (userBase[authorID] === undefined) { // create new user if necessary
+    if (!userBase[authorID]) { // create new user if necessary
         let person = {
             money:1000,
             soap:0,
@@ -83,7 +102,7 @@ function getUser(authorID) {
     return userBase[authorID]
 }
 
-client.on('message', (receivedMessage) => {
+client.on("message", (receivedMessage) => {
     // console.log(receivedMessage.author)
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
         return
@@ -102,7 +121,7 @@ client.on('message', (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Help Menu")
                 .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`", },
+                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`", },
                     { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
                 )
             receivedMessage.channel.send(helpEmbed)
@@ -119,6 +138,9 @@ client.on('message', (receivedMessage) => {
         case "cointoss":
             options.cointoss(userBase, user, receivedMessage, args)
             break
+        case "guesscard":
+            options.guesscard(userBase, user, receivedMessage, args)
+            break
         default:
             console.log("Message received: " + receivedMessage.content)
     }
@@ -132,7 +154,6 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // !work to do simple math problems
 // !leaderboard for top <something>
 // implement easier way to see if you won visually with check or X emojis
-// how to separate into different functions/files
 // implement deck of cards
 
 // is there a way to wait for response and take it in

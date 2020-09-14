@@ -10,15 +10,15 @@ module.exports = {
             wealth = "*maybe you should try working for once...*"
         } else if (user.money < 500) {
             wealth = "*dirt. poor.*"
-        } else if (user.money < 5000) {
+        } else if (user.money < 3000) {
             wealth = "*not doing great...*"
-        } else if (user.money < 25000) {
+        } else if (user.money < 10000) {
             wealth = "*looking average...*"
-        } else if (user.money < 60000) {
+        } else if (user.money < 25000) {
             wealth = "*still not as rich as me...*"
-        } else if (user.money < 100000) {
+        } else if (user.money < 50000) {
             wealth = "*why do you have so much?*"
-        } else if (user.money < 500000) {
+        } else if (user.money < 100000) {
             wealth = "*go spend some money...*"
         } else {
             wealth = "*stop trying so hard!*"
@@ -121,18 +121,14 @@ module.exports = {
             const cointossEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Coin Toss")
-                .setDescription("**Command:** " + "!cointoss <bet> <heads/tails>")
+                .setDescription("**Command: ** " + "!cointoss <bet> <heads/tails>\n**Winnings:** `2x`")
             receivedMessage.channel.send(cointossEmbed)
-            return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Invalid Bet")
             receivedMessage.channel.send(boundsEmbed)
-            return
-        }
-
-        if (args[0] > user.money) {
+        } else if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Too Poor")
@@ -148,13 +144,13 @@ module.exports = {
                 side = "error"
             }
 
-            var won = null
+            var result = null
             if (side === args[1]) {
-                won = "You Won a "
-                user.money = parseInt(args[0]) + parseInt(user.money)
+                result = "You Won a $" + parseInt(args[0]) + " Bet!"
+                user.money = parseInt(user.money) + parseInt(args[0])
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
             } else {
-                won = "You Lost a "
+                result = "You Lost a $" + parseInt(args[0]) + " Bet!"
                 user.money = parseInt(user.money) - parseInt(args[0])
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
             }
@@ -163,9 +159,60 @@ module.exports = {
                 .setColor("#ce2228")
                 .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "Landed on: `" + side + "`\n" + won + "$" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
+                    { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + user.money, },
                 )
             receivedMessage.channel.send(results)
         }
     },
+
+    guesscard: function(userBase, user, receivedMessage, args) {
+        let deck = JSON.parse(fs.readFileSync("./deck.json", "utf8"))
+        let values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+        let suits = ["spades", "clubs", "diamonds", "hearts"]
+        if (args.length != 3 || !parseInt(args[0]) || !values.includes(args[1]) || !suits.includes(args[2])) {
+            const guesscard = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Guess the Card")
+                .setDescription("**Command: ** " + "!guesscard <bet> <value> <suit>\n**Winnings: **`3x` for suit, `10x` for value, `50x` for suit & value\nValues: A, 2 ,3, 4, 5, 6, 7, 8, 9, 10, J, Q, K\nSuits: spades, clubs, diamonds, hearts")
+            receivedMessage.channel.send(guesscard)
+        } else if (args[0] < 0) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Bet")
+            receivedMessage.channel.send(boundsEmbed)
+        } else if (args[0] > user.money) {
+            const poorEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Too Poor")
+            receivedMessage.channel.send(poorEmbed)
+        } else {
+            let randCard = deck[Math.floor(Math.random() * 52)]
+            var result = null
+            if (randCard.suit === args[2]) { // correct suit
+                result = "You won `3x` on a $" + parseInt(args[0]) + " Bet!"
+                user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+            } else if (randCard.value === args[1]) { // correct value
+                result = "You won `10x` on a $" + parseInt(args[0]) + " Bet!!"
+                user.money = parseInt(user.money) + (parseInt(args[0]) * 9)
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+            } else if (randCard.suit === args[2] && randCard.value === args[1]) { // correct suit and value
+                result = "You won a `50x` on a $" + parseInt(args[0]) + " Bet!!!"
+                user.money = parseInt(user.money) + (parseInt(args[0]) * 49)
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+            } else {
+                result = "You lost a $" + parseInt(args[0]) + " Bet!"
+                user.money = parseInt(user.money) - parseInt(args[0])
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+            }
+
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+                .addFields(
+                    { name: "Random Card: `" + randCard.value + " of " + randCard.suit + "`\n" + result, value: "New Balance: $" + user.money, },
+                )
+            receivedMessage.channel.send(results)
+        }
+    }
 }

@@ -1,0 +1,262 @@
+[
+    {
+        "numeric": 1,
+        "value": "A",
+        "suit": "spades"
+    },
+    {
+        "numeric": 1,
+        "value": "A",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 1,
+        "value": "A",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 1,
+        "value": "A",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 2,
+        "value": "2",
+        "suit": "spades"
+    },
+    {
+        "numeric": 2,
+        "value": "2",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 2,
+        "value": "2",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 2,
+        "value": "2",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 3,
+        "value": "3",
+        "suit": "spades"
+    },
+    {
+        "numeric": 3,
+        "value": "3",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 3,
+        "value": "3",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 3,
+        "value": "3",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 4,
+        "value": "4",
+        "suit": "spades"
+    },
+    {
+        "numeric": 4,
+        "value": "4",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 4,
+        "value": "4",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 4,
+        "value": "4",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 5,
+        "value": "5",
+        "suit": "spades"
+    },
+    {
+        "numeric": 5,
+        "value": "5",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 5,
+        "value": "5",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 5,
+        "value": "5",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 6,
+        "value": "6",
+        "suit": "spades"
+    },
+    {
+        "numeric": 6,
+        "value": "6",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 6,
+        "value": "6",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 6,
+        "value": "6",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 7,
+        "value": "7",
+        "suit": "spades"
+    },
+    {
+        "numeric": 7,
+        "value": "7",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 7,
+        "value": "7",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 7,
+        "value": "7",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 8,
+        "value": "8",
+        "suit": "spades"
+    },
+    {
+        "numeric": 8,
+        "value": "8",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 8,
+        "value": "8",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 8,
+        "value": "8",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 9,
+        "value": "9",
+        "suit": "spades"
+    },
+    {
+        "numeric": 9,
+        "value": "9",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 9,
+        "value": "9",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 9,
+        "value": "9",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 10,
+        "value": "10",
+        "suit": "spades"
+    },
+    {
+        "numeric": 10,
+        "value": "10",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 10,
+        "value": "10",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 10,
+        "value": "10",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 11,
+        "value": "J",
+        "suit": "spades"
+    },
+    {
+        "numeric": 11,
+        "value": "J",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 11,
+        "value": "J",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 11,
+        "value": "J",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 12,
+        "value": "Q",
+        "suit": "spades"
+    },
+    {
+        "numeric": 12,
+        "value": "Q",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 12,
+        "value": "Q",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 12,
+        "value": "Q",
+        "suit": "hearts"
+    },
+    {
+        "numeric": 13,
+        "value": "K",
+        "suit": "spades"
+    },
+    {
+        "numeric": 13,
+        "value": "K",
+        "suit": "clubs"
+    },
+    {
+        "numeric": 13,
+        "value": "K",
+        "suit": "diamonds"
+    },
+    {
+        "numeric": 13,
+        "value": "K",
+        "suit": "hearts"
+    }
+]
