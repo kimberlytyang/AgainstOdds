@@ -5,6 +5,7 @@ const attachment = new Discord.MessageAttachment('cbcfilter.png')
 const client = new Discord.Client()
 
 const prefix = "!"
+var userBase = {}
 
 client.on('ready', () => { // async function allows the use of `await` to complete action before continuing
     // List servers the bot is connected to
@@ -22,7 +23,10 @@ client.on('ready', () => { // async function allows the use of `await` to comple
     client.guilds.cache.forEach((guild) => {
         sendWelcome(guild)
     })
-    //const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
+    
+    initUserBase()
+
+    // const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
 })
 
 client.on("guildCreate", (guild) => {
@@ -57,6 +61,13 @@ function sendWelcome(guild) { // send on restart or add to new server
     }
 }
 
+function initUserBase() {
+    let dataFile = fs.readFileSync("./data.json", "utf8")
+    if (dataFile !== "") {
+        userBase = JSON.parse(dataFile)
+    }
+}
+
 client.on('message', (receivedMessage) => {
     // console.log(receivedMessage.author)
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
@@ -68,13 +79,7 @@ client.on('message', (receivedMessage) => {
 	const command = split[0]
     const args = split.slice(1)
 
-    var curr = {
-        authorID:receivedMessage.author.id,
-        retrieved:fs.readFileSync("./data.json", "utf8"), // data file
-        obj:null, // array of all users from parsing file
-        userIndex:null, // index in `obj` array of current user
-        user:null, // reference to current user data
-    }
+    var authorID = receivedMessage.author.id
     
     if (command === "help") {
         const helpEmbed = new Discord.MessageEmbed()
@@ -88,7 +93,7 @@ client.on('message', (receivedMessage) => {
     } else if (command === "bank") {
         // if money above certain amount, react with "rich" or "poor"
         // receivedMessage.react("\:smile:")
-        user = getUser(curr) // getUser
+        user = getUser(authorID)
 
         var wealth = null
         if (user.money <= 0) {
@@ -147,7 +152,7 @@ client.on('message', (receivedMessage) => {
         }
         
         var total = price * args[1]
-        user = getUser(curr) // getUser
+        user = getUser(authorID)
 
         if (total > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
@@ -158,16 +163,16 @@ client.on('message', (receivedMessage) => {
             if (args[0] == 1) {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
             } else if (args[0] == 2) {
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
             } else {
                 user.soap = parseInt(user.soap) + parseInt(args[1])
                 user.toiletpaper = parseInt(user.toiletpaper) + parseInt(args[1])
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
             }
 
             const purchases = new Discord.MessageEmbed()
@@ -179,7 +184,7 @@ client.on('message', (receivedMessage) => {
             receivedMessage.channel.send(purchases)
         }
     } else if (command === "beg") {
-        user = getUser(curr) // getUser
+        user = getUser(authorID)
         if (user.money > 300) { // if bank is > $300, deny from begging
             const begEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
@@ -189,7 +194,7 @@ client.on('message', (receivedMessage) => {
         } else {
             var randMoney = Math.floor(Math.random() * 21) * 10 + 300
             user.money = parseInt(user.money) + parseInt(randMoney)
-            fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
 
             const begEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
@@ -213,7 +218,7 @@ client.on('message', (receivedMessage) => {
             return
         }
 
-        user = getUser(curr) // getUser
+        user = getUser(authorID)
 
         if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
@@ -235,11 +240,11 @@ client.on('message', (receivedMessage) => {
             if (side === args[1]) {
                 won = "You Won a "
                 user.money = parseInt(args[0]) + parseInt(user.money)
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
             } else {
                 won = "You Lost a "
                 user.money = parseInt(user.money) - parseInt(args[0])
-                fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2)) // update balance
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2)) // update balance
             }
 
             const results = new Discord.MessageEmbed()
@@ -255,46 +260,18 @@ client.on('message', (receivedMessage) => {
     }
 })
 
-function getUser(curr) {
-    if (curr.retrieved === "") { // no users exist yet
-        var person = {
-            id:curr.authorID,
+function getUser(authorID) {
+    if (userBase[authorID] === undefined) { // create new user if necessary
+        let person = {
             money:1000,
             soap:0,
             toiletpaper:0,
         }
-        var arr = [{...person}]
-        fs.writeFileSync("./data.json", JSON.stringify(arr, null, 2))
-
-        curr.retrieved = fs.readFileSync("./data.json", "utf8")
-        curr.obj = JSON.parse(curr.retrieved)
-        curr.userIndex = 0
-    } else { // check each existing user to find if current user exists
-        curr.obj = JSON.parse(curr.retrieved)
-        var found = false
-        for (let i = 0; i < curr.obj.length; i++) {
-            if (curr.obj[i].id === curr.authorID) { // if found
-                curr.userIndex = i // set `userIndex` to current location
-                found = true
-                break
-            }
-        }
-        if (!found) { // searched and still not found
-            var person = {
-                id:curr.authorID,
-                money:1000,
-                soap:0,
-                toiletpaper:0,
-            }
-            curr.obj.push({...person})
-            fs.writeFileSync("./data.json", JSON.stringify(curr.obj, null, 2))
-
-            curr.retrieved = fs.readFileSync("./data.json", "utf8")
-            curr.obj = JSON.parse(curr.retrieved)
-            curr.userIndex = curr.obj.length - 1
-        }
+        userBase[authorID] = {...person}
+        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 2))
     }
-    return curr.obj[curr.userIndex]
+
+    return userBase[authorID]
 }
 
 client.login(process.env.CLIENT_TOKEN) // replace with token
@@ -307,7 +284,6 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // implement easier way to see if you won visually with check or X emojis
 // how to separate into different functions/files
 // implement deck of cards
-// sotre user data with map? or id as property name?
 
 // is there a way to wait for response and take it in
 // difference between file parsing with node vs just json parsing
