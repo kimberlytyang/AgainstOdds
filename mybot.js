@@ -68,15 +68,24 @@ function initUserBase() {
 }
 
 function initDeck() {
-    var deck = []
+    let deck = []
     let values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
     let suits = ["spades", "clubs", "diamonds", "hearts"]
     let countVal = 1
 
     for (let i = 0; i < values.length; i++) {
         for (let k = 0; k < suits.length; k++) {
+            let bjVal = 0
+            if (values[i] === "A") {
+                bjVal = 11
+            } else if (values[i] === "J" || values[i] === "Q" || values[i] === "K") {
+                bjVal = 10
+            } else {
+                bjVal = parseInt(values[i])
+            }
             let card = {
                 numeric:countVal,
+                numericBJ:bjVal,
                 value:values[i],
                 suit:suits[k],
             }
@@ -121,7 +130,7 @@ client.on("message", (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Help Menu")
                 .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`", },
+                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`, `!blackjack`", },
                     { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
                 )
             receivedMessage.channel.send(helpEmbed)
@@ -141,6 +150,9 @@ client.on("message", (receivedMessage) => {
         case "guesscard":
             options.guesscard(userBase, user, receivedMessage, args)
             break
+        case "blackjack":
+            options.blackjack(userBase, user, receivedMessage, args)
+            break
         default:
             console.log("Message received: " + receivedMessage.content)
     }
@@ -154,7 +166,6 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // !work to do simple math problems
 // !leaderboard for top <something>
 // implement easier way to see if you won visually with check or X emojis
-// implement deck of cards
 
 // is there a way to wait for response and take it in
 // difference between file parsing with node vs just json parsing
