@@ -221,9 +221,9 @@ module.exports = {
             const blackjack = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Blackjack")
-                .setDescription("**Command: ** " + "!blackjack <bet>\n**Winnings: **`2x`")
+                .setDescription("**Command: ** " + "!blackjack <bet>\n**Winnings: **`2x` normal, `3x` blackjack")
             receivedMessage.channel.send(blackjack)
-            receivedMessage.channel.send("<:white_check_mark:755295981880213504> Hit   <:x:755295994760921128> Stand   <:lock:755304777067528233> Insurance")
+            receivedMessage.channel.send("<:greencheck:755603324400828467> Hit   <:x:755295994760921128> Stand   <:two:755609764305698817> Double") //    <:lock:755304777067528233> Insurance
             return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
@@ -287,21 +287,23 @@ module.exports = {
                 game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal dealer card
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
-                user.money = parseInt(user.money) + parseInt(args[0])
+                user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                 results.setDescription("**You got Blackjack!**")
                 results.addFields(
-                    { name: "You Won `2x` on a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
+                    { name: "You Won `3x` on a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
                 )
                 receivedMessage.channel.send(results)
                 return
             }
 
-            message.react("✅").then(() => message.react("❌"))
-            const hitFilter = (reaction, player) =>
-                reaction.emoji.name === "✅" && player.id === receivedMessage.author.id
-            const standFilter = (reaction, player) =>
-                reaction.emoji.name === "❌" && player.id === receivedMessage.author.id
+            message.react("755603324400828467").then(() => message.react("❌")).then(() => message.react("2️⃣"))
+            const hitFilter = (reaction, person) =>
+                (reaction.emoji.name === "greencheck" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏩" && person.id === message.author.id)
+            const standFilter = (reaction, person) =>
+                (reaction.emoji.name === "❌" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏭" && person.id === message.author.id)
+            const doubleFilter = (reaction, person) =>
+                reaction.emoji.name === "2️⃣" && person.id === receivedMessage.author.id
             const hit = message.createReactionCollector(hitFilter, {
                 time:60000,
             })
@@ -309,8 +311,13 @@ module.exports = {
                 time:60000,
                 max:1,
             })
+            const double = message.createReactionCollector(doubleFilter, {
+                time:60000,
+                max:1,
+            })
 
             hit.on("collect", () => {
+                console.log("hit")
                 let newCard = deck[Math.floor(Math.random() * 52)]
                 playerCards.push({...newCard})
                 pTotal = cardsTotal(playerCards)
@@ -325,8 +332,10 @@ module.exports = {
                         { name: "You Lost a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
                     )
                     receivedMessage.channel.send(results)
+                    removeReactions(receivedMessage, message)
                     hit.stop()
                     stand.stop()
+                    double.stop()
                     return
                 } else if (pTotal === 21) { // got to 21 need to draw dealers cards and see results
                     while (cardsTotal(dealerCards) < 17) {
@@ -337,6 +346,7 @@ module.exports = {
                     game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal all cards
                     game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                     message.edit(game)
+
                     if (dTotal > 21) {
                         user.money = parseInt(user.money) + parseInt(args[0])
                         fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
@@ -359,20 +369,22 @@ module.exports = {
                         )
                         receivedMessage.channel.send(results)
                     }
+                    
+                    removeReactions(receivedMessage, message)
                     hit.stop()
                     stand.stop()
+                    double.stop()
                     return
                 } else {
                     game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + getValueSuit(dealer1) + ", `???`")
                     game.setFooter("Player Total: " + pTotal)
                     message.edit(game)
+                    removeReactions(receivedMessage, message)
                 }
-
-                // message.reactions.removeAll().catch(error => console.error("Failed to clear reactions: ", error)) // reset reactions
-                // message.react("✅").then(() => message.react("❌"))
             })
 
             stand.on("collect", () => {
+                console.log("stand")
                 while (cardsTotal(dealerCards) < 17) {
                     newCard = deck[Math.floor(Math.random() * 52)]
                     dealerCards.push({...newCard})
@@ -381,6 +393,7 @@ module.exports = {
                 game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal all cards
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
+
                 if (dTotal > 21) {
                     user.money = parseInt(user.money) + parseInt(args[0])
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
@@ -411,9 +424,25 @@ module.exports = {
                     )
                     receivedMessage.channel.send(results)
                 }
+
+                removeReactions(receivedMessage, message)
                 hit.stop()
                 stand.stop()
+                double.stop()
                 return
+            })
+
+            double.on("collect", () => {
+                console.log("double")
+                args[0] = parseInt(args[0]) * 2
+                // hit -> stand only if not bust
+                // remove reactions for only certain emoji >> and >>|
+                removeReactions(receivedMessage, message)
+                message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error('Failed to remove reactions: ', error))).then(() => { // force hit collector
+                    if (cardsTotal(playerCards) < 21) {
+                        message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error))) // force stand collector if game not over
+                    }
+                })
             })
         })
     },
@@ -445,4 +474,15 @@ function cardsTotal(cards) { // total up all cards in array
         aces--
     }
     return sum
+}
+
+function removeReactions(receivedMessage, message) {
+    const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(receivedMessage.author.id))
+    try {
+        for (const reaction of userReactions.values()) {
+            reaction.users.remove(receivedMessage.author.id)
+        }
+    } catch (error) {
+        console.error('Failed to remove reactions.')
+    }
 }

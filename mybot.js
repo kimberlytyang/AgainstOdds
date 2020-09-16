@@ -169,3 +169,7 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 
 // is there a way to wait for response and take it in
 // difference between file parsing with node vs just json parsing
+
+// bot can open many instances
+// current players list? block people from using !<command>
+// maybe take money when game starts?
