@@ -317,7 +317,11 @@ module.exports = {
             })
 
             hit.on("collect", () => {
-                console.log("hit")
+                if (message.reactions.cache.get("2️⃣")) {
+                    double.stop()
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                }
+                
                 let newCard = deck[Math.floor(Math.random() * 52)]
                 playerCards.push({...newCard})
                 pTotal = cardsTotal(playerCards)
@@ -384,7 +388,11 @@ module.exports = {
             })
 
             stand.on("collect", () => {
-                console.log("stand")
+                if (message.reactions.cache.get("2️⃣")) {
+                    double.stop()
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                }
+
                 while (cardsTotal(dealerCards) < 17) {
                     newCard = deck[Math.floor(Math.random() * 52)]
                     dealerCards.push({...newCard})
@@ -433,16 +441,21 @@ module.exports = {
             })
 
             double.on("collect", () => {
-                console.log("double")
-                args[0] = parseInt(args[0]) * 2
-                // hit -> stand only if not bust
-                // remove reactions for only certain emoji >> and >>|
-                removeReactions(receivedMessage, message)
-                message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error('Failed to remove reactions: ', error))).then(() => { // force hit collector
-                    if (cardsTotal(playerCards) < 21) {
-                        message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error))) // force stand collector if game not over
-                    }
-                })
+                if (user.money < parseInt(args[0]) * 2) { // too poor to double
+                    removeReactions(receivedMessage, message)
+                    const poorEmbed = new Discord.MessageEmbed()
+                        .setColor("#ce2228")
+                        .setTitle("Too Poor")
+                    receivedMessage.channel.send(poorEmbed)
+                } else {
+                    args[0] = parseInt(args[0]) * 2
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                    message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error('Failed to remove reactions: ', error))).then(() => { // force hit collector
+                        if (cardsTotal(playerCards) < 21) {
+                            message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error))) // force stand collector if game not over
+                        }
+                    })
+                }
             })
         })
     },
