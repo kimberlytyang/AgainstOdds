@@ -217,13 +217,14 @@ module.exports = {
     },
 
     blackjack: function(userBase, user, receivedMessage, args) {
-        if (args.length != 1 || !parseInt(args[0])) {
+        if (args.length != 1 || !parseInt(args[0])) { // || !Number.isInteger(args[0])
             const blackjack = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Blackjack")
                 .setDescription("**Command: ** " + "!blackjack <bet>\n**Winnings: **`2x` normal, `3x` blackjack")
+                .setFooter("Hit to draw one card, Stand to end your turn,\nDouble Down to double your bet, hit, and stand")
             receivedMessage.channel.send(blackjack)
-            receivedMessage.channel.send("<:greencheck:755603324400828467> Hit   <:x:755295994760921128> Stand   <:two:755609764305698817> Double") //    <:lock:755304777067528233> Insurance
+            receivedMessage.channel.send("<:greencheck:755603324400828467> Hit    <:x:755295994760921128> Stand    <:two:755609764305698817> Double Down") //    <:lock:755304777067528233> Insurance
             return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
@@ -341,44 +342,8 @@ module.exports = {
                     stand.stop()
                     double.stop()
                     return
-                } else if (pTotal === 21) { // got to 21 need to draw dealers cards and see results
-                    while (cardsTotal(dealerCards) < 17) {
-                        newCard = deck[Math.floor(Math.random() * 52)]
-                        dealerCards.push({...newCard})
-                    }
-                    dTotal = cardsTotal(dealerCards)
-                    game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal all cards
-                    game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
-                    message.edit(game)
-
-                    if (dTotal > 21) {
-                        user.money = parseInt(user.money) + parseInt(args[0])
-                        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-                        results.setDescription("**Dealer BUST!**")
-                        results.addFields(
-                            { name: "You Won `2x` on a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
-                        )
-                        receivedMessage.channel.send(results)
-                    } else if (pTotal > dTotal) {
-                        user.money = parseInt(user.money) + parseInt(args[0])
-                        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-                        results.setDescription("**You beat the dealer!**")
-                        results.addFields(
-                            { name: "You Won `2x` on a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
-                        )
-                        receivedMessage.channel.send(results)
-                    } else if (pTotal === dTotal) {
-                        results.addFields(
-                            { name: "You Tied a $" + parseInt(args[0]) + " Bet!", value: "Balance: $" + user.money, },
-                        )
-                        receivedMessage.channel.send(results)
-                    }
-                    
-                    removeReactions(receivedMessage, message)
-                    hit.stop()
-                    stand.stop()
-                    double.stop()
-                    return
+                } else if (pTotal === 21) {
+                    message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error))) // force stand
                 } else {
                     game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + getValueSuit(dealer1) + ", `???`")
                     game.setFooter("Player Total: " + pTotal)
@@ -442,7 +407,7 @@ module.exports = {
 
             double.on("collect", () => {
                 if (user.money < parseInt(args[0]) * 2) { // too poor to double
-                    removeReactions(receivedMessage, message)
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
                     const poorEmbed = new Discord.MessageEmbed()
                         .setColor("#ce2228")
                         .setTitle("Too Poor")

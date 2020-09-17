@@ -162,14 +162,12 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 
 // IDEAS
 
-// !beg <user>
-// !work to do simple math problems
 // !leaderboard for top <something>
 // implement easier way to see if you won visually with check or X emojis
-
-// is there a way to wait for response and take it in
-// difference between file parsing with node vs just json parsing
 
 // bot can open many instances
 // current players list? block people from using !<command>
 // maybe take money when game starts?
+
+// stand instead in the hit event when player hits 21
+// if out of time, subtract money (look for each place money gets changed and set a boolean to true meaning that the game was played through)
