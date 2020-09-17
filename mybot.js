@@ -130,7 +130,7 @@ client.on("message", (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Help Menu")
                 .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`, `!blackjack`", },
+                    { name: "<:game_die:753436658556338206> Game Options", value: "`!coin`, `!guesscard`,\n`!blackjack`", },
                     { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
                 )
             receivedMessage.channel.send(helpEmbed)
@@ -144,7 +144,7 @@ client.on("message", (receivedMessage) => {
         case "beg":
             options.beg(userBase, user, receivedMessage)
             break
-        case "cointoss":
+        case "coin":
             options.cointoss(userBase, user, receivedMessage, args)
             break
         case "guesscard":

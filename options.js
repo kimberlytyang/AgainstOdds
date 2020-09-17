@@ -210,7 +210,7 @@ module.exports = {
                 .setColor("#ce2228")
                 .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "Random Card: `" + randCard.value + " of " + randCard.suit + "`\n" + result, value: "New Balance: $" + user.money, },
+                    { name: "Random Card:\n" + formatCards([randCard]) + "\n" + result, value: "New Balance: $" + user.money, },
                 )
             receivedMessage.channel.send(results)
         }
@@ -224,7 +224,7 @@ module.exports = {
                 .setDescription("**Command: ** " + "!blackjack <bet>\n**Winnings: **`2x` normal, `3x` blackjack")
                 .setFooter("Hit to draw one card, Stand to end your turn,\nDouble Down to double your bet, hit, and stand")
             receivedMessage.channel.send(blackjack)
-            receivedMessage.channel.send("<:greencheck:755603324400828467> Hit    <:x:755295994760921128> Stand    <:two:755609764305698817> Double Down") //    <:lock:755304777067528233> Insurance
+            receivedMessage.channel.send("<:greencheck:755603324400828467> Hit    <:x:755295994760921128> Stand    <:two:755609764305698817> Double Down")
             return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
@@ -257,13 +257,13 @@ module.exports = {
         const game = new Discord.MessageEmbed()
             .setColor("#ce2228")
             .setTitle("Blackjack")
-            .setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + getValueSuit(dealer1) + ", `???`")
+            .setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
             .setFooter("Player Total: " + cardsTotal(playerCards))
         receivedMessage.channel.send(game).then((message) => {
             let pTotal = cardsTotal(playerCards)
             let dTotal = cardsTotal(dealerCards)
             if (dTotal === 21 && pTotal === 21) {
-                game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal dealer card
+                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards)) // reveal dealer card
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
                 results.setDescription("**Both got Blackjack!**")
@@ -273,7 +273,7 @@ module.exports = {
                 receivedMessage.channel.send(results)
                 return
             } else if (dTotal === 21 && pTotal < 21) {
-                game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal dealer card
+                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards)) // reveal dealer card
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
                 user.money = parseInt(user.money) - parseInt(args[0])
@@ -285,7 +285,7 @@ module.exports = {
                 receivedMessage.channel.send(results)
                 return
             } else if (dTotal < 21 && pTotal === 21) {
-                game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal dealer card
+                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards)) // reveal dealer card
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
                 user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
@@ -327,7 +327,7 @@ module.exports = {
                 playerCards.push({...newCard})
                 pTotal = cardsTotal(playerCards)
                 if (pTotal > 21) { // BUST
-                    game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal all cards
+                    game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards)) // reveal all cards
                     game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                     message.edit(game)
                     user.money = parseInt(user.money) - parseInt(args[0])
@@ -345,7 +345,7 @@ module.exports = {
                 } else if (pTotal === 21) {
                     message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error))) // force stand
                 } else {
-                    game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + getValueSuit(dealer1) + ", `???`")
+                    game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
                     game.setFooter("Player Total: " + pTotal)
                     message.edit(game)
                     removeReactions(receivedMessage, message)
@@ -363,7 +363,7 @@ module.exports = {
                     dealerCards.push({...newCard})
                 }
                 dTotal = cardsTotal(dealerCards)
-                game.setDescription("Player Cards: " + formatCards(playerCards) + "\nDealer Cards: " + formatCards(dealerCards)) // reveal all cards
+                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards)) // reveal all cards
                 game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                 message.edit(game)
 
@@ -426,16 +426,44 @@ module.exports = {
     },
 }
 
-function getValueSuit(card) { // output card value with suit
-    return "`" + card.value + " " + card.suit + "`"
+function formatCards(cards) {
+    let formatTop = getTopCardEmoji(cards[0])
+    let formatBottom = getBottomCardEmoji(cards[0])
+    for (let i = 1; i < cards.length; i++) {
+        formatTop += " " + getTopCardEmoji(cards[i])
+        formatBottom += " " + getBottomCardEmoji(cards[i])
+    }
+    return formatTop + "\n" + formatBottom
 }
 
-function formatCards(cards) {
-    let formattedString = getValueSuit(cards[0])
-    for (let i = 1; i < cards.length; i++) {
-        formattedString += ", " + getValueSuit(cards[i])
+function getDealerHidden(card) {
+    let formatTop = getTopCardEmoji(card) + " <:back1:755968281697058906>"
+    let formatBottom = getBottomCardEmoji(card) + " <:back2:755968281453527154>"
+    return formatTop + "\n" + formatBottom
+}
+
+function getTopCardEmoji(card) {
+    let blackCards = ["<:bA:755968281524961280>", "<:b2:755968281227165696>", "<:b3:755968281189548193>", "<:b4:755968281269239828>", "<:b5:755968281269239908>", "<:b6:755968280837226567>", "<:b7:755968280933433525>", "<:b8:755968281243943024>", "<:b9:755968281248137333>", "<:b10:755968281210519662>", "<:bJ:755968281197674598>", "<:bQ:755968281025839215>", "<:bK:755968281516703795>"]
+    let redCards = ["<:rA:755968281520766986>", "<:r2:755968281503989902>", "<:r3:755968281189548185>", "<:r4:755968281583681607>", "<:r5:755968281512378468>", "<:r6:755968281311182848>", "<:r7:755968281353126009>", "<:r8:755968281252462593>", "<:r9:755968281390874654>", "<:r10:755968281332023316>", "<:rJ:755968280883363843>", "<:rQ:755968281449463968>", "<:rK:755968281512247297>"]
+    if (card.suit === "spades" || card.suit === "clubs") {
+        return blackCards[card.numeric - 1]
+    } else {
+        return redCards[card.numeric - 1]
     }
-    return formattedString
+}
+
+function getBottomCardEmoji(card) {
+    let suits = ["<:spades_:755968281130565673>", "<:clubs_:755968281495732385>", "<:diamonds_:755968281499795507>", "<:hearts_:755968281537544222>"]
+    switch (card.suit) {
+        case "spades":
+            return suits[0]
+        case "clubs":
+            return suits[1]
+        case "diamonds":
+            return suits[2]
+        case "hearts":
+            return suits[3]
+    }
 }
 
 function cardsTotal(cards) { // total up all cards in array
