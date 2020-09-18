@@ -19,9 +19,10 @@ client.on("ready", () => { // async function allows the use of `await` to comple
         })
     })
         
-    client.guilds.cache.forEach((guild) => {
-        sendWelcome(guild)
-    })
+    // send welcome on startup is spam
+    // client.guilds.cache.forEach((guild) => {
+    //     sendWelcome(guild)
+    // })
     
     initUserBase()
     initDeck()
@@ -116,7 +117,7 @@ client.on("message", (receivedMessage) => {
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
         return
     }
-
+    // receivedMessage.channel.send("<:slot:756046766545305701>")
     const withoutPrefix = receivedMessage.content.slice(prefix.length)
 	const split = withoutPrefix.split(" ")
 	const command = split[0]
@@ -130,7 +131,7 @@ client.on("message", (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Help Menu")
                 .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!coin`, `!guesscard`,\n`!blackjack`", },
+                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`,\n`!blackjack`", },
                     { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
                 )
             receivedMessage.channel.send(helpEmbed)
@@ -144,7 +145,7 @@ client.on("message", (receivedMessage) => {
         case "beg":
             options.beg(userBase, user, receivedMessage)
             break
-        case "coin":
+        case "cointoss":
             options.cointoss(userBase, user, receivedMessage, args)
             break
         case "guesscard":
@@ -169,5 +170,4 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // current players list? block people from using !<command>
 // maybe take money when game starts?
 
-// stand instead in the hit event when player hits 21
 // if out of time, subtract money (look for each place money gets changed and set a boolean to true meaning that the game was played through)
