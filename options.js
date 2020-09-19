@@ -123,46 +123,49 @@ module.exports = {
                 .setTitle("Coin Toss")
                 .setDescription("**Command: ** " + "!cointoss <bet> <heads/tails>\n**Winnings:** `2x`")
             receivedMessage.channel.send(cointossEmbed)
+            return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Invalid Bet")
             receivedMessage.channel.send(boundsEmbed)
+            return
         } else if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Too Poor")
             receivedMessage.channel.send(poorEmbed)
-        } else {
-            user.money = parseInt(user.money) - parseInt(args[0]) // take money when bet is placed
-            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            var flip = Math.floor(Math.random() * 2)
-            var side = null
-            if (flip === 0) {
-                side = "heads"
-            } else if (flip === 1) {
-                side = "tails"
-            } else {
-                side = "error"
-            }
-
-            var result = null
-            if (side === args[1]) {
-                result = "You Won `2x` on a $" + parseInt(args[0]) + " Bet!"
-                user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            } else {
-                result = "You Lost a $" + parseInt(args[0]) + " Bet!"
-            }
-
-            const results = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
-                .addFields(
-                    { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + user.money, },
-                )
-            receivedMessage.channel.send(results)
+            return
         }
+
+        user.money = parseInt(user.money) - parseInt(args[0]) // take money when bet is placed
+        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        var flip = Math.floor(Math.random() * 2)
+        var side = null
+        if (flip === 0) {
+            side = "heads"
+        } else if (flip === 1) {
+            side = "tails"
+        } else {
+            side = "error"
+        }
+
+        var result = null
+        if (side === args[1]) {
+            result = "You Won `2x` on a $" + parseInt(args[0]) + " Bet!"
+            user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        } else {
+            result = "You Lost a $" + parseInt(args[0]) + " Bet!"
+        }
+
+        const results = new Discord.MessageEmbed()
+            .setColor("#ce2228")
+            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+            .addFields(
+                { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + user.money, },
+            )
+        receivedMessage.channel.send(results)
     },
 
     guesscard: function(userBase, user, receivedMessage, args) {
@@ -175,45 +178,142 @@ module.exports = {
                 .setTitle("Guess the Card")
                 .setDescription("**Command: ** " + "!guesscard <bet> <value> <suit>\n**Winnings: **`2x` for suit, `5x` for value, `20x` for suit & value\nValues: A, 2 ,3, 4, 5, 6, 7, 8, 9, 10, J, Q, K\nSuits: spades, clubs, diamonds, hearts")
             receivedMessage.channel.send(guesscard)
+            return
         } else if (args[0] < 0) {
             const boundsEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Invalid Bet")
             receivedMessage.channel.send(boundsEmbed)
+            return
         } else if (args[0] > user.money) {
             const poorEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("Too Poor")
             receivedMessage.channel.send(poorEmbed)
-        } else {
-            user.money = parseInt(user.money) - parseInt(args[0]) // take money when bet is placed
-            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            let randCard = deck[Math.floor(Math.random() * 52)]
-            var result = null
-            if (randCard.suit === args[2] && randCard.value === args[1]) {
-                result = "You Won a `20x` on a $" + parseInt(args[0]) + " Bet!!!"
-                user.money = parseInt(user.money) + (parseInt(args[0]) * 20)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            } else if (randCard.suit === args[2]) { // correct suit
-                result = "You Won `2x` on a $" + parseInt(args[0]) + " Bet!"
-                user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            } else if (randCard.value === args[1]) { // correct value
-                result = "You Won `5x` on a $" + parseInt(args[0]) + " Bet!!"
-                user.money = parseInt(user.money) + (parseInt(args[0]) * 5)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
-            } else {
-                result = "You Lost a $" + parseInt(args[0]) + " Bet!"
-            }
-
-            const results = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
-                .addFields(
-                    { name: "Random Card:\n" + formatCards([randCard]) + "\n" + result, value: "New Balance: $" + user.money, },
-                )
-            receivedMessage.channel.send(results)
+            return
         }
+
+        user.money = parseInt(user.money) - parseInt(args[0]) // take money when bet is placed
+        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        let randCard = deck[Math.floor(Math.random() * 52)]
+        var result = null
+        if (randCard.suit === args[2] && randCard.value === args[1]) {
+            result = "You Won a `20x` on a $" + parseInt(args[0]) + " Bet!!!"
+            user.money = parseInt(user.money) + (parseInt(args[0]) * 20)
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        } else if (randCard.suit === args[2]) { // correct suit
+            result = "You Won `2x` on a $" + parseInt(args[0]) + " Bet!"
+            user.money = parseInt(user.money) + (parseInt(args[0]) * 2)
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        } else if (randCard.value === args[1]) { // correct value
+            result = "You Won `5x` on a $" + parseInt(args[0]) + " Bet!!"
+            user.money = parseInt(user.money) + (parseInt(args[0]) * 5)
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+        } else {
+            result = "You Lost a $" + parseInt(args[0]) + " Bet!"
+        }
+
+        const results = new Discord.MessageEmbed()
+            .setColor("#ce2228")
+            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+            .addFields(
+                { name: "Random Card:  " + getTopCardEmoji(randCard) + "\n<:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299>" + getBottomCardEmoji(randCard) + "\n" + result, value: "New Balance: $" + user.money, },
+            )
+        receivedMessage.channel.send(results)
+    },
+
+    slot: function(userBase, user, receivedMessage, args) {
+        let slot1 = "<:slot1:756340365157466183>"
+        let slot2 = "<:slot2:756340415132598392>"
+        let slot3 = "<:slot3:756340439501504523>"
+        let slot4 = "<:slot4:756340456853340242>"
+        let slot5 = "<:slot5:756340468786266184>"
+        let any = "<:yellowquestion:756374980064968714>"
+        let clear = "<:clear:756342610213470299>"
+
+        let wins = [[slot1, slot1, slot1], [slot2, slot2, slot2], [slot3, slot3, slot3], [slot1, slot1, any], [slot4, slot4, slot4], [slot2, slot2, any], [slot5, slot5, slot5], [slot3, slot3, any], [slot4, slot4, any], [slot5, slot5, any]]
+
+        if (args.length != 1 || !parseInt(args[0])) {
+            const slot = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Slot Machine")
+                .setDescription("**Command: ** " + "!slot <bet>\n**Winnings:**\n" + wins[0].join(" ") + clear + "`25x`\n" + wins[1].join(" ") + clear + "`15x`\n" + wins[2].join(" ") + clear + "`10x`\n" + wins[3].join(" ") + clear + "`9x`\n" + wins[4].join(" ") + clear + "`7x`\n" + wins[5].join(" ") + clear + "`5x`\n" + wins[6].join(" ") + clear + "`3x`\n" + wins[7].join(" ") + clear + "`3x`\n" + wins[8].join(" ") + clear + "`2x`\n" + wins[9].join(" ") + clear + "`2x`\n") // format winnings
+            receivedMessage.channel.send(slot)
+            return
+        } else if (args[0] < 0) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Bet")
+            receivedMessage.channel.send(boundsEmbed)
+            return
+        } else if (args[0] > user.money) {
+            const poorEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Too Poor")
+            receivedMessage.channel.send(poorEmbed)
+            return
+        }
+
+        user.money = parseInt(user.money) - parseInt(args[0]) // take money when bet is placed
+        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+
+        let roll1 = getRoll()
+        let roll2 = getRoll()
+        let roll3 = getRoll()
+        let rollResults = [roll1, roll2, roll3]
+
+        // const slotTitle = new Discord.MessageEmbed()
+        //     .setColor("#ce2228")
+        //     .setTitle("--- Slot Machine ---")
+        // receivedMessage.channel.send(slotTitle)
+
+        const results = new Discord.MessageEmbed()
+            .setColor("#ce2228")
+            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+
+        let time = Date.now()
+        receivedMessage.channel.send(slotTopBar() + "\n<:left:756372063983501423><a:slot:756046766545305701><a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar()).then((message) => {
+            console.log("begin: " + (Date.now() - time))
+            setTimeout(() => {
+                message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + "<a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
+                console.log("1 to 2: " + (Date.now() - time))
+                setTimeout(() => {
+                    message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + "<a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
+                    console.log("2 to 3: " + (Date.now() - time))
+                    setTimeout(() => {
+                        message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + roll3 + "<:right:756372063954141304>\n" + slotBottomBar())
+                        console.log("innermost: " + (Date.now() - time))
+
+                        let winType = getSlotWinnings(rollResults)
+                        let multiplier = winType[0]
+                        let numMatches = winType[1]
+                        if (numMatches === 3) {
+                            user.money = parseInt(user.money) + (parseInt(args[0]) * parseInt(multiplier))
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+                            results.setDescription("**You Matched 3!**")
+                            results.addFields(
+                                { name: "You Won `" + multiplier + "x` a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
+                            )
+                            receivedMessage.channel.send(results)
+                        } else if (numMatches === 2) {
+                            user.money = parseInt(user.money) + (parseInt(args[0]) * parseInt(multiplier))
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
+                            results.setDescription("**You Matched 2!**")
+                            results.addFields(
+                                { name: "You Won `" + multiplier + "x` a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
+                            )
+                            receivedMessage.channel.send(results)
+                        } else {
+                            results.setDescription("**No Matches!**")
+                            results.addFields(
+                                { name: "You Lost a $" + parseInt(args[0]) + " Bet!", value: "New Balance: $" + user.money, },
+                            )
+                            receivedMessage.channel.send(results)
+                        }
+                    }, 1000)
+                }, 1000)
+            }, 1000)
+        })
     },
 
     blackjack: function(userBase, user, receivedMessage, args) {
@@ -428,6 +528,67 @@ module.exports = {
     },
 }
 
+function getRoll() {
+    let rolls = ["<:slot1:756340365157466183>", "<:slot2:756340415132598392>", "<:slot3:756340439501504523>", "<:slot4:756340456853340242>", "<:slot5:756340468786266184>"]
+    let randRoll = Math.floor(Math.random() * 100)
+    if (randRoll < 30) { // 3/10 chance (30%)
+        return rolls[4]
+    } else if (randRoll < 55) { // 2.5/10 chance (25%)
+        return rolls[3]
+    } else if (randRoll < 75) { // 2/10 chance (20%)
+        return rolls[2]
+    } else if (randRoll < 90) { // 1.5/10 chance (15%)
+        return rolls[1]
+    } else { // 1/10 chance (10%)
+        return rolls[0]
+    }
+}
+
+function getSlotWinnings(rollResults) {
+    let slot1 = "<:slot1:756340365157466183>"
+    let slot2 = "<:slot2:756340415132598392>"
+    let slot3 = "<:slot3:756340439501504523>"
+    let slot4 = "<:slot4:756340456853340242>"
+    let slot5 = "<:slot5:756340468786266184>"
+    let any = "<:yellowquestion:756374980064968714>"
+
+    if (rollResults[0] === rollResults[1] && rollResults[1] === rollResults[2]) {
+        switch (rollResults[0]) {
+            case slot1:
+                return [25, 3]
+            case slot2:
+                return [15, 3]
+            case slot3:
+                return [10, 3]
+            case slot4:
+                return [7, 3]
+            case slot5:
+                return [3, 3]
+        }
+    } else if (rollResults[0] === rollResults[1] || rollResults[0] === rollResults[2] || rollResults[1] === rollResults[2]) {
+        let match = null
+        if (rollResults[0] === rollResults[1] || rollResults[0] === rollResults[2]) {
+            match = rollResults[0]
+        } else {
+            match = rollResults[1]
+        }
+        switch (match) {
+            case slot1:
+                return [9, 2]
+            case slot2:
+                return [5, 2]
+            case slot3:
+                return [3, 2]
+            case slot4:
+                return [2, 2]
+            case slot5:
+                return [2, 2]
+        }
+    } else {
+        return [0, 0]
+    }
+}
+
 function formatCards(cards) {
     let formatTop = getTopCardEmoji(cards[0])
     let formatBottom = getBottomCardEmoji(cards[0])
@@ -493,4 +654,12 @@ function removeReactions(receivedMessage, message) {
     } catch (error) {
         console.error('Failed to remove reactions.')
     }
+}
+
+function slotTopBar() {
+    return "<:topleft:756372117800353844><:top_:756372063857672269><:top_:756372063857672269><:top_:756372063857672269><:topright:756372132463771690>"
+}
+
+function slotBottomBar() {
+    return "<:bottomleft:756372146434998292><:bottom:756372063786369025><:bottom:756372063786369025><:bottom:756372063786369025><:bottomright:756372160443842621>"
 }

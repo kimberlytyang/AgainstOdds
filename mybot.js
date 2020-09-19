@@ -117,7 +117,7 @@ client.on("message", (receivedMessage) => {
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
         return
     }
-    // receivedMessage.channel.send("<:slot:756046766545305701>")
+    
     const withoutPrefix = receivedMessage.content.slice(prefix.length)
 	const split = withoutPrefix.split(" ")
 	const command = split[0]
@@ -131,8 +131,8 @@ client.on("message", (receivedMessage) => {
                 .setColor("#ce2228")
                 .setTitle("Help Menu")
                 .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss`, `!guesscard`,\n`!blackjack`", },
-                    { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank`, `!shop`, `!beg`", },
+                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
+                    { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!beg`", },
                 )
             receivedMessage.channel.send(helpEmbed)
             break
@@ -151,6 +151,9 @@ client.on("message", (receivedMessage) => {
         case "guesscard":
             options.guesscard(userBase, user, receivedMessage, args)
             break
+        case "slot":
+            options.slot(userBase, user, receivedMessage, args)
+            break
         case "blackjack":
             options.blackjack(userBase, user, receivedMessage, args)
             break
@@ -168,6 +171,6 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 
 // bot can open many instances
 // current players list? block people from using !<command>
-// maybe take money when game starts?
 
-// if out of time, subtract money (look for each place money gets changed and set a boolean to true meaning that the game was played through)
+// Number.isInteger(parseInt(args[0]))
+// move ^ to one if-else lower (invalid bet)
