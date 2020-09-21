@@ -3,15 +3,12 @@ const Discord = require('discord.js')
 const MAX_MONEY = 1000000000000
 
 module.exports = {
-    bank: function(user, receivedMessage) {
-        // if money above certain amount, react with "rich" or "poor"
-        // receivedMessage.react("\:smile:")
-        let wealth = null
+    bank: function(userBase, user, receivedMessage) {
+        let wealth = ""
         if (parseInt(user.money) <= 0) {
             wealth = "*maybe you should try working for once...*"
         } else if (parseInt(user.money) < 500) {
             wealth = "*dirt. poor.*"
-            receivedMessage.channel.send(parseInt(user.money))
         } else if (parseInt(user.money) < 3000) {
             wealth = "*not doing great...*"
         } else if (parseInt(user.money) < 10000) {
@@ -29,7 +26,7 @@ module.exports = {
         const bankEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
             .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
-            .setDescription("**Money:** $" + user.money + "\n<:soap:754085455791915108>: " + user.soap + "\n<:roll_of_paper:753943988754710608>: " + user.toiletpaper)
+            .setDescription("**Money:** $" + balanceCheck(userBase, user) + "\n<:soap:754085455791915108>: " + user.soap + "\n<:roll_of_paper:753943988754710608>: " + user.toiletpaper)
         
         receivedMessage.channel.send(bankEmbed)
         receivedMessage.channel.send(wealth)
@@ -94,7 +91,7 @@ module.exports = {
                 .setColor("#ce2228")
                 .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
                 .addFields(
-                    { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + user.money + "\nThank you for coming <:woman_bowing:753954248764686379>", },
+                    { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for coming <:woman_bowing:753954248764686379>", },
                 )
             receivedMessage.channel.send(purchases)
         }
@@ -168,7 +165,7 @@ module.exports = {
             .setColor("#ce2228")
             .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
             .addFields(
-                { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + user.money, },
+                { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
             )
         receivedMessage.channel.send(results)
     },
@@ -223,7 +220,7 @@ module.exports = {
             .setColor("#ce2228")
             .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
             .addFields(
-                { name: "Random Card:  " + getTopCardEmoji(randCard) + "\n<:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299><:clear:756342610213470299>" + getBottomCardEmoji(randCard) + "\n" + result, value: "New Balance: $" + user.money, },
+                { name: "Random Card:\n" + getTopCardEmoji(randCard) + "\n" + getBottomCardEmoji(randCard) + "\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
             )
         receivedMessage.channel.send(results)
     },
@@ -289,7 +286,7 @@ module.exports = {
                             fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                             results.setDescription("**You Matched 3!**")
                             results.addFields(
-                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                             )
                             receivedMessage.channel.send(results)
                         } else if (numMatches === 2) {
@@ -297,13 +294,13 @@ module.exports = {
                             fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                             results.setDescription("**You Matched 2!**")
                             results.addFields(
-                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                             )
                             receivedMessage.channel.send(results)
                         } else {
                             results.setDescription("**No Matches!**")
                             results.addFields(
-                                { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                                { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                             )
                             receivedMessage.channel.send(results)
                         }
@@ -369,7 +366,7 @@ module.exports = {
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                 results.setDescription("**Both got Blackjack!**")
                 results.addFields(
-                    { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + user.money, },
+                    { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + balanceCheck(userBase, user), },
                 )
                 receivedMessage.channel.send(results)
                 return
@@ -379,7 +376,7 @@ module.exports = {
                 message.edit(game)                
                 results.setDescription("**Dealer got Blackjack!**")
                 results.addFields(
-                    { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                    { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                 )
                 receivedMessage.channel.send(results)
                 return
@@ -391,7 +388,7 @@ module.exports = {
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                 results.setDescription("**You got Blackjack!**")
                 results.addFields(
-                    { name: "You Won `3x` on a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                    { name: "You Won `3x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                 )
                 receivedMessage.channel.send(results)
                 return
@@ -431,7 +428,7 @@ module.exports = {
                     message.edit(game)
                     results.setDescription("**You BUST!**")
                     results.addFields(
-                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
                     removeReactions(receivedMessage, message)
@@ -469,7 +466,7 @@ module.exports = {
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                     results.setDescription("**Dealer BUST!**")
                     results.addFields(
-                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
                 } else if (pTotal > dTotal) {
@@ -477,20 +474,20 @@ module.exports = {
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                     results.setDescription("**You beat the dealer!**")
                     results.addFields(
-                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
                 } else if (pTotal < dTotal) {
                     results.setDescription("**The dealer beat you!**")
                     results.addFields(
-                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + user.money, },
+                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
                 } else {
                     user.money = parseInt(user.money) + bet
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4)) // update balance
                     results.addFields(
-                        { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + user.money, },
+                        { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
                 }
@@ -555,7 +552,6 @@ function getSlotWinnings(rollResults) {
     let slot3 = "<:slot3:756340439501504523>"
     let slot4 = "<:slot4:756340456853340242>"
     let slot5 = "<:slot5:756340468786266184>"
-    let any = "<:yellowquestion:756374980064968714>"
 
     if (rollResults[0] === rollResults[1] && rollResults[1] === rollResults[2]) {
         switch (rollResults[0]) {
@@ -634,7 +630,7 @@ function getBottomCardEmoji(card) {
     }
 }
 
-function cardsTotal(cards) { // total up all cards in array
+function cardsTotal(cards) {
     let sum = 0
     let aces = 0
     for (let i = 0; i < cards.length; i++) {
@@ -658,5 +654,17 @@ function removeReactions(receivedMessage, message) {
         }
     } catch (error) {
         console.error('Failed to remove reactions.')
+    }
+}
+
+function balanceCheck(userBase, user) {
+    if (parseInt(user.money) > MAX_MONEY) {
+        user.money = MAX_MONEY
+        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+        return user.money + " (MAX)"
+    } else if (parseInt(user.money) === MAX_MONEY) {
+        return user.money + " (MAX)"
+    } else {
+        return user.money
     }
 }

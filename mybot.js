@@ -3,12 +3,11 @@ const Discord = require('discord.js')
 const options = require('./options.js')
 require('dotenv').config()
 const client = new Discord.Client()
-// const attachment = new Discord.MessageAttachment('cbcfilter.png')
 
 const prefix = "!"
-let userBase = {} // holds all user data from file
+let userBase = {}
 
-client.on("ready", () => { // async function allows the use of `await` to complete action before continuing
+client.on("ready", () => {
     // List servers the bot is connected to
     console.log("Servers:")
     client.guilds.cache.forEach((guild) => {
@@ -18,23 +17,16 @@ client.on("ready", () => { // async function allows the use of `await` to comple
             console.log("    - " + channel.name + " (" + channel.type + ") - " + channel.id)
         })
     })
-        
-    // send welcome on startup is spam
-    // client.guilds.cache.forEach((guild) => {
-    //     sendWelcome(guild)
-    // })
     
     initUserBase()
     initDeck()
-
-    // const localFileAttachment = new Discord.MessageAttachment('./res/dice.png')
 })
 
 client.on("guildCreate", (guild) => {
     sendWelcome(guild)
 })
 
-function sendWelcome(guild) { // send on restart or add to new server
+function sendWelcome(guild) {
     const welcomeEmbed = new Discord.MessageEmbed()
         .setColor("#ce2228")
         .setTitle("---------  Welcome to AgainstOdds!  ---------")
@@ -45,7 +37,7 @@ function sendWelcome(guild) { // send on restart or add to new server
 
     let channelExists = false
     guild.channels.cache.some((channel) => {
-        if (channel.name == "againstodds" && channel.type == "text") { // if againstodds channel exists, send here
+        if (channel.name == "againstodds" && channel.type == "text") {
             channelExists = true
             let textChannel = client.channels.cache.get(channel.id)
             textChannel.send(welcomeEmbed)
@@ -53,7 +45,7 @@ function sendWelcome(guild) { // send on restart or add to new server
         }
     })
         
-    if (!channelExists) { // create againstodds channel, then send here
+    if (!channelExists) {
         guild.channels.create("againstodds", { type: "text" }).then((result) => {
             let textChannel = client.channels.cache.get(result.id)
             textChannel.send(welcomeEmbed)
@@ -99,7 +91,7 @@ function initDeck() {
 }
 
 function getUser(authorID) {
-    if (!userBase[authorID]) { // create new user if necessary
+    if (!userBase[authorID]) {
         let person = {
             money:1000,
             soap:0,
@@ -113,7 +105,6 @@ function getUser(authorID) {
 }
 
 client.on("message", (receivedMessage) => {
-    // console.log(receivedMessage.author)
     if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
         return
     }
@@ -137,7 +128,7 @@ client.on("message", (receivedMessage) => {
             receivedMessage.channel.send(helpEmbed)
             break
         case "bank":
-            options.bank(user, receivedMessage)
+            options.bank(userBase, user, receivedMessage)
             break
         case "shop":
             options.shop(userBase, user, receivedMessage, args)
@@ -167,10 +158,6 @@ client.login(process.env.CLIENT_TOKEN) // replace with token
 // IDEAS
 
 // !leaderboard for top <something>
-// implement easier way to see if you won visually with check or X emojis
 
 // bot can open many instances
 // current players list? block people from using !<command>
-
-// Number.isInteger(parseInt(args[0]))
-// move ^ to one if-else lower (invalid bet)
