@@ -6,7 +6,7 @@ const client = new Discord.Client()
 // const attachment = new Discord.MessageAttachment('cbcfilter.png')
 
 const prefix = "!"
-var userBase = {} // holds all user data from file
+let userBase = {} // holds all user data from file
 
 client.on("ready", () => { // async function allows the use of `await` to complete action before continuing
     // List servers the bot is connected to
@@ -43,11 +43,11 @@ function sendWelcome(guild) { // send on restart or add to new server
         .setDescription("This is where you can risk every dollar you save <:money_with_wings:753429317903712288>")
         .setFooter("!help for how to play")
 
-    var channelExists = false
+    let channelExists = false
     guild.channels.cache.some((channel) => {
         if (channel.name == "againstodds" && channel.type == "text") { // if againstodds channel exists, send here
             channelExists = true
-            var textChannel = client.channels.cache.get(channel.id)
+            let textChannel = client.channels.cache.get(channel.id)
             textChannel.send(welcomeEmbed)
             return true
         }
@@ -55,7 +55,7 @@ function sendWelcome(guild) { // send on restart or add to new server
         
     if (!channelExists) { // create againstodds channel, then send here
         guild.channels.create("againstodds", { type: "text" }).then((result) => {
-            var textChannel = client.channels.cache.get(result.id)
+            let textChannel = client.channels.cache.get(result.id)
             textChannel.send(welcomeEmbed)
         })
     }
@@ -123,7 +123,7 @@ client.on("message", (receivedMessage) => {
 	const command = split[0]
     const args = split.slice(1)
 
-    var user = getUser(receivedMessage.author.id)
+    let user = getUser(receivedMessage.author.id)
     
     switch (command) {
         case "help":
