@@ -3,10 +3,8 @@
 
 ## Description
 * AgainstOdds is a Discord gambling bot that allows you to risk it all in a game of odds.
-* Language / Tools / Technologies:
+* Language / Tools:
     * [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - a lightweight, interpreted, or just-in-time compiled programming language
-    * [Visual Studio Code](https://code.visualstudio.com/) - a lightweight but powerful source code editor for desktops
-    * [Git Bash](https://gitforwindows.org/) - Git for Windows provides a BASH emulation used to run Git from the command line
     * [Node.js](https://nodejs.org/en/about/) - an asynchronous event-driven JavaScript runtime environment for back end development
     * [Discord.js](https://discord.js.org/#/) - a powerful node.js module that allows you to interact with the Discord API
 
@@ -25,8 +23,8 @@
 2. Sign into the [Discord Developer Portal](https://discord.com/developers)
     - Create a `New Application`
     - Under the `Bot` tab, create a bot, and copy the `TOKEN`
-3. Install [Node.js](https://nodejs.org/en/download/) for your platform
-4. Clone this repository using a terminal like [Git Bash](https://gitforwindows.org/) and navigate to the `AgainstOdds` directory
+3. Install [Node.js](https://nodejs.org/en/download/) for your platform (npm should come with Node.js)
+4. Clone this repository using a terminal and navigate to the `AgainstOdds` directory
     ```
     $ git clone https://github.com/kimberlytyang/AgainstOdds.git
     $ cd AgainstOdds
