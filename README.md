@@ -21,8 +21,11 @@
     - Create a `New Application`
     - Under the `Bot` tab, create a bot, and copy the `TOKEN`
 3. Install [Node.js](https://nodejs.org/en/download/) for your platform
-4. Clone this repository to your local machine
-    - Navigate to the `AgainstOdds` directory using the terminal
+4. Clone this repository using a terminal like [Git Bash](https://gitforwindows.org/) and navigate to the `AgainstOdds` directory
+    ```
+    $ git clone https://github.com/kimberlytyang/AgainstOdds.git
+    $ cd AgainstOdds
+    ```
     - Create a file named `.env`, and open it in an editor
     - On the first line, type `CLIENT_TOKEN=`, followed by the bot's `TOKEN` from step 2, and save the file
     - Using the terminal, run the command `npm install && npm start`
