@@ -3,10 +3,9 @@
     "version": "1.0.0",
     "description": "Discord Gambling Bot.",
     "scripts": {
-      "start": "node mybot.js"
+      "start": "node bot.js"
     },
     "dependencies": {
-      "discord.js": "^12.3.1",
-      "dotenv": "^8.2.0"
+      "discord.js": "^12.18.3"
     }
-  }
+}

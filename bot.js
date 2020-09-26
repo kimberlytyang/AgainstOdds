@@ -8,16 +8,6 @@ const prefix = "!"
 let userBase = {}
 
 client.on("ready", () => {
-    // List servers the bot is connected to
-    console.log("Servers:")
-    client.guilds.cache.forEach((guild) => {
-        console.log(" - " + guild.name)
-        // List all channels
-        guild.channels.cache.forEach((channel) => {
-            console.log("    - " + channel.name + " (" + channel.type + ") - " + channel.id)
-        })
-    })
-    
     initUserBase()
     initDeck()
 })
@@ -148,16 +138,7 @@ client.on("message", (receivedMessage) => {
         case "blackjack":
             options.blackjack(userBase, user, receivedMessage, args)
             break
-        default:
-            console.log("Message received: " + receivedMessage.content)
     }
 })
 
 client.login(process.env.CLIENT_TOKEN) // replace with token
-
-// IDEAS
-
-// !leaderboard for top <something>
-
-// bot can open many instances
-// current players list? block people from using !<command>
