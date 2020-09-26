@@ -3,7 +3,12 @@
 
 ## Description
 * AgainstOdds is a Discord gambling bot that allows you to risk it all in a game of odds.
-* Language: JavaScript
+* Language / Tools / Technologies:
+    * [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - a lightweight, interpreted, or just-in-time compiled programming language
+    * [Visual Studio Code](https://code.visualstudio.com/) - a lightweight but powerful source code editor for desktops
+    * [Git Bash](https://gitforwindows.org/) - Git for Windows provides a BASH emulation used to run Git from the command line
+    * [Node.js](https://nodejs.org/en/about/) - an asynchronous event-driven JavaScript runtime environment for back end development
+    * [Discord.js](https://discord.js.org/#/) - a powerful node.js module that allows you to interact with the Discord API
 
 ## Screenshots
 | Blackjack | Slot_Machine |
