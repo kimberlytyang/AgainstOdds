@@ -45,6 +45,12 @@ module.exports = {
                 .setFooter("Stock up on items for quarantine!")
             receivedMessage.channel.send(shopEmbed)
             return
+        } else if (quantity < 1) {
+            const quantityEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Quantity")
+            receivedMessage.channel.send(quantityEmbed)
+            return
         } else if (num < 1 || num > 3) {
             const boundsEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
