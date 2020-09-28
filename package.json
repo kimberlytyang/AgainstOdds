@@ -1,12 +1,12 @@
 {
-  "name": "againstodds",
-  "version": "1.0.0",
-  "description": "Discord Gambling Bot.",
-  "scripts": {
-    "start": "node bot.js"
-  },
-  "dependencies": {
-    "discord.js": "12.x",
-    "dotenv": "8.x"
-  }
+    "name": "againstodds",
+    "version": "1.0.0",
+    "description": "Discord Gambling Bot.",
+    "scripts": {
+        "start": "node bot.js"
+    },
+    "dependencies": {
+        "discord.js": "12.x",
+        "dotenv": "8.x"
+    }
 }

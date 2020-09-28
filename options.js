@@ -3,6 +3,17 @@ const Discord = require('discord.js')
 const MAX_MONEY = 1000000000000
 
 module.exports = {
+    help: function(receivedMessage) {
+        const helpEmbed = new Discord.MessageEmbed()
+            .setColor("#ce2228")
+            .setTitle("Help Menu")
+            .addFields(
+                { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
+                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!beg`", },
+            )
+        receivedMessage.channel.send(asd)
+    },
+
     bank: function(userBase, user, receivedMessage) {
         let wealth = ""
         if (parseInt(user.money) <= 0) {
@@ -80,28 +91,41 @@ module.exports = {
                 .setTitle("Too Poor")
             receivedMessage.channel.send(poorEmbed)
         } else {
+            let startMoney = user.money
+            let startSoap = user.soap
+            let startToiletPaper = user.toiletpaper
+
             if (num == 1) {
                 user.soap = parseInt(user.soap) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
             } else if (num == 2) {
                 user.toiletpaper = parseInt(user.toiletpaper) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
             } else {
                 user.soap = parseInt(user.soap) + quantity
                 user.toiletpaper = parseInt(user.toiletpaper) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
             }
 
-            const purchases = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
-                .addFields(
-                    { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for coming <:woman_bowing:753954248764686379>", },
-                )
-            receivedMessage.channel.send(purchases)
+            try {
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+
+                const purchases = new Discord.MessageEmbed()
+                    .setColor("#ce2228")
+                    .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
+                    .addFields(
+                        { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for coming <:woman_bowing:753954248764686379>", },
+                    )
+                receivedMessage.channel.send(purchases)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                user.money = startMoney
+                user.soap = startSoap
+                user.toiletpaper = startToiletPaper
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                console.log("ERROR: shop option (refund)")
+                console.log(error)
+            }
         }
     },
 
@@ -148,34 +172,44 @@ module.exports = {
             return
         }
 
-        user.money = parseInt(user.money) - bet
-        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        let flip = Math.floor(Math.random() * 2)
-        let side = null
-        if (flip === 0) {
-            side = "heads"
-        } else if (flip === 1) {
-            side = "tails"
-        } else {
-            side = "error"
-        }
+        let startMoney = user.money
 
-        let result = null
-        if (side === args[1]) {
-            result = "You Won `2x` on a $" + bet + " Bet!"
-            user.money = parseInt(user.money) + (bet * 2)
+        try {
+            user.money = parseInt(user.money) - bet
             fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        } else {
-            result = "You Lost a $" + bet + " Bet!"
-        }
+            let flip = Math.floor(Math.random() * 2)
+            let side = null
+            if (flip === 0) {
+                side = "heads"
+            } else if (flip === 1) {
+                side = "tails"
+            } else {
+                side = "error"
+            }
 
-        const results = new Discord.MessageEmbed()
-            .setColor("#ce2228")
-            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
-            .addFields(
-                { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
-            )
-        receivedMessage.channel.send(results)
+            let result = null
+            if (side === args[1]) {
+                result = "You Won `2x` on a $" + bet + " Bet!"
+                user.money = parseInt(user.money) + (bet * 2)
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            } else {
+                result = "You Lost a $" + bet + " Bet!"
+            }
+
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+                .addFields(
+                    { name: "Landed on: `" + side + "`\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
+                )
+            receivedMessage.channel.send(results)
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: cointoss option (refund)")
+            console.log(error)
+        }
     },
 
     guesscard: function(userBase, user, receivedMessage, args) {
@@ -204,33 +238,41 @@ module.exports = {
             return
         }
 
-        user.money = parseInt(user.money) - bet
-        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        let randCard = deck[Math.floor(Math.random() * 52)]
-        let result = null
-        if (randCard.suit === args[2] && randCard.value === args[1]) {
-            result = "You Won a `20x` on a $" + bet + " Bet!!!"
-            user.money = parseInt(user.money) + (bet * 20)
-            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        } else if (randCard.suit === args[2]) {
-            result = "You Won `2x` on a $" + bet + " Bet!"
-            user.money = parseInt(user.money) + (bet * 2)
-            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        } else if (randCard.value === args[1]) {
-            result = "You Won `5x` on a $" + bet + " Bet!!"
-            user.money = parseInt(user.money) + (bet * 5)
-            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        } else {
-            result = "You Lost a $" + bet + " Bet!"
-        }
+        let startMoney = user.money
 
-        const results = new Discord.MessageEmbed()
-            .setColor("#ce2228")
-            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
-            .addFields(
-                { name: "Random Card:\n" + getTopCardEmoji(randCard) + "\n" + getBottomCardEmoji(randCard) + "\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
-            )
-        receivedMessage.channel.send(results)
+        try {
+            user.money = parseInt(user.money) - bet
+            let randCard = deck[Math.floor(Math.random() * 52)]
+            let result = null
+            if (randCard.suit === args[2] && randCard.value === args[1]) {
+                result = "You Won a `20x` on a $" + bet + " Bet!!!"
+                user.money = parseInt(user.money) + (bet * 20)
+            } else if (randCard.suit === args[2]) {
+                result = "You Won `2x` on a $" + bet + " Bet!"
+                user.money = parseInt(user.money) + (bet * 2)
+            } else if (randCard.value === args[1]) {
+                result = "You Won `5x` on a $" + bet + " Bet!!"
+                user.money = parseInt(user.money) + (bet * 5)
+            } else {
+                result = "You Lost a $" + bet + " Bet!"
+            }
+
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+                .addFields(
+                    { name: "Random Card:\n" + getTopCardEmoji(randCard) + "\n" + getBottomCardEmoji(randCard) + "\n" + result, value: "New Balance: $" + balanceCheck(userBase, user), },
+                )
+            receivedMessage.channel.send(results)
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: cointoss option (refund)")
+            console.log(error)
+        }
     },
 
     slot: function(userBase, user, receivedMessage, args) {
@@ -266,56 +308,64 @@ module.exports = {
             return
         }
 
-        user.money = parseInt(user.money) - bet
-        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+        let startMoney = user.money
 
-        let roll1 = getRoll()
-        let roll2 = getRoll()
-        let roll3 = getRoll()
-        let rollResults = [roll1, roll2, roll3]
+        try {
+            user.money = parseInt(user.money) - bet
 
-        const results = new Discord.MessageEmbed()
-            .setColor("#ce2228")
-            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+            let roll1 = getRoll()
+            let roll2 = getRoll()
+            let roll3 = getRoll()
+            let rollResults = [roll1, roll2, roll3]
 
-        receivedMessage.channel.send(slotTopBar() + "\n<:left:756372063983501423><a:slot:756046766545305701><a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar()).then((message) => {
-            setTimeout(() => {
-                message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + "<a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+
+            receivedMessage.channel.send(slotTopBar() + "\n<:left:756372063983501423><a:slot:756046766545305701><a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar()).then((message) => {
                 setTimeout(() => {
-                    message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + "<a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
+                    message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + "<a:slot:756046766545305701><a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
                     setTimeout(() => {
-                        message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + roll3 + "<:right:756372063954141304>\n" + slotBottomBar())
+                        message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + "<a:slot:756046766545305701><:right:756372063954141304>\n" + slotBottomBar())
+                        setTimeout(() => {
+                            message.edit(slotTopBar() + "\n<:left:756372063983501423>" + roll1 + roll2 + roll3 + "<:right:756372063954141304>\n" + slotBottomBar())
 
-                        let winType = getSlotWinnings(rollResults)
-                        let multiplier = winType[0]
-                        let numMatches = winType[1]
-                        if (numMatches === 3) {
-                            user.money = parseInt(user.money) + (bet * multiplier)
+                            let winType = getSlotWinnings(rollResults)
+                            let multiplier = winType[0]
+                            let numMatches = winType[1]
+                            if (numMatches === 3) {
+                                user.money = parseInt(user.money) + (bet * multiplier)
+                                results.setDescription("**You Matched 3!**")
+                                results.addFields(
+                                    { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                                )
+                                receivedMessage.channel.send(results)
+                            } else if (numMatches === 2) {
+                                user.money = parseInt(user.money) + Math.ceil(bet * multiplier)
+                                results.setDescription("**You Matched 2!**")
+                                results.addFields(
+                                    { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                                )
+                                receivedMessage.channel.send(results)
+                            } else {
+                                results.setDescription("**No Matches!**")
+                                results.addFields(
+                                    { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                                )
+                                receivedMessage.channel.send(results)
+                            }
                             fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                            results.setDescription("**You Matched 3!**")
-                            results.addFields(
-                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                            )
-                            receivedMessage.channel.send(results)
-                        } else if (numMatches === 2) {
-                            user.money = parseInt(user.money) + Math.ceil(bet * multiplier)
-                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                            results.setDescription("**You Matched 2!**")
-                            results.addFields(
-                                { name: "You Won `" + multiplier + "x` a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                            )
-                            receivedMessage.channel.send(results)
-                        } else {
-                            results.setDescription("**No Matches!**")
-                            results.addFields(
-                                { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                            )
-                            receivedMessage.channel.send(results)
-                        }
+                        }, 1000)
                     }, 1000)
                 }, 1000)
-            }, 1000)
-        })
+            })
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: slot option (refund)")
+            console.log(error)
+        }
     },
 
     blackjack: function(userBase, user, receivedMessage, args) {
@@ -341,6 +391,8 @@ module.exports = {
             receivedMessage.channel.send(poorEmbed)
             return
         }
+
+        let startMoney = user.money
 
         user.money = parseInt(user.money) - bet
         fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
@@ -424,7 +476,7 @@ module.exports = {
             hit.on("collect", () => {
                 if (message.reactions.cache.get("2️⃣")) {
                     double.stop()
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
                 }
                 
                 let newCard = deck[Math.floor(Math.random() * 52)]
@@ -445,7 +497,7 @@ module.exports = {
                     double.stop()
                     return
                 } else if (pTotal === 21) {
-                    message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error)))
+                    message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
                 } else {
                     game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
                     game.setFooter("Player Total: " + pTotal)
@@ -457,7 +509,7 @@ module.exports = {
             stand.on("collect", () => {
                 if (message.reactions.cache.get("2️⃣")) {
                     double.stop()
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
                 }
 
                 while (cardsTotal(dealerCards) < 17) {
@@ -509,13 +561,13 @@ module.exports = {
 
             double.on("collect", () => {
                 if (parseInt(user.money) < bet) {
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
                     const poorEmbed = new Discord.MessageEmbed()
                         .setColor("#ce2228")
                         .setTitle("Too Poor")
                     receivedMessage.channel.send(poorEmbed)
                 } else if (playerCards.length > 2) {
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
                     const denyDouble = new Discord.MessageEmbed()
                         .setColor("#ce2228")
                         .setTitle("No doubling down after first turn.")
@@ -524,10 +576,10 @@ module.exports = {
                     user.money = parseInt(user.money) - bet
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
                     bet = bet * 2
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error('Failed to remove reactions: ', error))
-                    message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error('Failed to remove reactions: ', error))).then(() => {
+                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                    message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error("Failed to remove reactions: ", error))).then(() => {
                         if (cardsTotal(playerCards) < 21) {
-                            message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error('Failed to remove reactions: ', error)))
+                            message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
                         }
                     })
                 }
@@ -667,7 +719,7 @@ function removeReactions(receivedMessage, message) {
             reaction.users.remove(receivedMessage.author.id)
         }
     } catch (error) {
-        console.error('Failed to remove reactions.')
+        console.error("Failed to remove reactions.")
     }
 }
 

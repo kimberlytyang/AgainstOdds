@@ -13,7 +13,11 @@ client.on("ready", () => {
 })
 
 client.on("guildCreate", (guild) => {
-    sendWelcome(guild)
+    try {
+        sendWelcome(guild)
+    } catch {
+        console.log("Error: Unable to send welcome message")
+    }
 })
 
 function sendWelcome(guild) {
@@ -108,35 +112,76 @@ client.on("message", (receivedMessage) => {
     
     switch (command) {
         case "help":
-            const helpEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Help Menu")
-                .addFields(
-                    { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
-                    { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!beg`", },
-                )
-            receivedMessage.channel.send(helpEmbed)
+            try {
+                options.help(receivedMessage)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: help option (general)")
+                console.log(error)
+            }
             break
         case "bank":
-            options.bank(userBase, user, receivedMessage)
+            try {
+                options.bank(userBase, user, receivedMessage)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: bank option (general)")
+                console.log(error)
+            }
             break
         case "shop":
-            options.shop(userBase, user, receivedMessage, args)
+            try {
+                options.shop(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: shop option (general)")
+                console.log(error)
+            }
             break
         case "beg":
-            options.beg(userBase, user, receivedMessage)
+            try {
+                options.beg(userBase, user, receivedMessage)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: beg option (general)")
+                console.log(error)
+            }
             break
         case "cointoss":
-            options.cointoss(userBase, user, receivedMessage, args)
+            try {
+                options.cointoss(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: cointoss option (general)")
+                console.log(error)
+            }
             break
         case "guesscard":
-            options.guesscard(userBase, user, receivedMessage, args)
+            try {
+                options.guesscard(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: guesscard option (general)")
+                console.log(error)
+            }
             break
         case "slot":
-            options.slot(userBase, user, receivedMessage, args)
+            try {
+                options.slot(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: slot option (general)")
+                console.log(error)
+            }
             break
         case "blackjack":
-            options.blackjack(userBase, user, receivedMessage, args)
+            try {
+                options.blackjack(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: blackjack option (general)")
+                console.log(error)
+            }
             break
     }
 })
