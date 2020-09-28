@@ -6,7 +6,7 @@
 * Language / Tools:
     * [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - a lightweight, interpreted, or just-in-time compiled programming language
     * [Node.js](https://nodejs.org/en/about/) - an asynchronous event-driven JavaScript runtime environment for back end development
-    * [Discord.js](https://discord.js.org/#/) - a powerful node.js module that allows you to interact with the Discord API
+    * [Discord.js](https://discord.js.org/#/) - a powerful Node.js module that allows you to interact with the Discord API
 
 ## Screenshots
 | Blackjack | Slot_Machine |
@@ -29,7 +29,7 @@
     $ git clone https://github.com/kimberlytyang/AgainstOdds.git
     $ cd AgainstOdds
     ```
-    - Create a file named `.env`, and open it in an editor
+    - Create a `.env` file, and open it in an editor
     - On the first line, type `CLIENT_TOKEN=`, followed by the bot's `TOKEN` from step 2, and save the file
     - Using the terminal, run the command `npm install && npm start`
 5. Return to the Developer Portal
