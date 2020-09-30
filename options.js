@@ -9,7 +9,7 @@ module.exports = {
             .setTitle("Help Menu")
             .addFields(
                 { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
-                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!beg`", },
+                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!open`\n`!beg` `!leaderboard`", },
             )
         receivedMessage.channel.send(helpEmbed)
     },
@@ -39,7 +39,7 @@ module.exports = {
         const bankEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
             .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
-            .setDescription("**Money:** $" + balanceCheck(userBase, user) + "\n<:soap:754085455791915108>: " + user.soap + "\n<:roll_of_paper:753943988754710608>: " + user.toiletpaper)
+            .setDescription("**Money:** $" + balanceCheck(userBase, user) + "\n<:gift:760966578979602443>: " + user.present + "\n<:scissors:760966578979602443>: " + user.scissors)
         
         receivedMessage.channel.send(bankEmbed)
         receivedMessage.channel.send(wealth)
@@ -52,8 +52,8 @@ module.exports = {
             const shopEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $35 `Soap` <:soap:754085455791915108>**\n**2) $50 `Toilet Paper` <:roll_of_paper:753943988754710608>**\n**3) $75 `Special Bundle` <:roll_of_paper:753943988754710608> + <:soap:754085455791915108>**")
-                .setFooter("Stock up on items for quarantine!")
+                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $100 `Present` <:gift:760966578979602443>**\n**2) $300 `Scissors` <:scissors:760966578979602443>**\n**3) $350 `Special Bundle` <:gift:760966578979602443> + <:scissors:760966578979602443>**")
+                .setFooter("Open presents for more items!")
             receivedMessage.channel.send(shopEmbed)
             return
         } else if (quantity < 1) {
@@ -73,13 +73,13 @@ module.exports = {
         let price = 0
         let item = null
         if (num === 1) {
-            price = 35
-            item = "Soap"
+            price = 100
+            item = "Present"
         } else if (num == 2) {
-            price = 50
-            item = "Toilet Paper"
+            price = 300
+            item = "Scissors"
         } else {
-            price = 75
+            price = 350
             item = "Special Bundle"
         }
         
@@ -92,18 +92,18 @@ module.exports = {
             receivedMessage.channel.send(poorEmbed)
         } else {
             let startMoney = user.money
-            let startSoap = user.soap
-            let startToiletPaper = user.toiletpaper
+            let startPresent = user.present
+            let startScissors = user.scissors
 
             if (num == 1) {
-                user.soap = parseInt(user.soap) + quantity
+                user.present = parseInt(user.present) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
             } else if (num == 2) {
-                user.toiletpaper = parseInt(user.toiletpaper) + quantity
+                user.scissors = parseInt(user.scissors) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
             } else {
-                user.soap = parseInt(user.soap) + quantity
-                user.toiletpaper = parseInt(user.toiletpaper) + quantity
+                user.present = parseInt(user.present) + quantity
+                user.scissors = parseInt(user.scissors) + quantity
                 user.money = parseInt(user.money) - parseInt(total)
             }
 
@@ -120,8 +120,8 @@ module.exports = {
             } catch (error) {
                 receivedMessage.channel.send("Error! Something went wrong :(")
                 user.money = startMoney
-                user.soap = startSoap
-                user.toiletpaper = startToiletPaper
+                user.present = startPresent
+                user.scissors = startScissors
                 fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
                 console.log("ERROR: shop option (refund)")
                 console.log(error)
@@ -147,6 +147,24 @@ module.exports = {
                 .setDescription("You begged the Federal Reserve and got $" + randMoney + ".")
             receivedMessage.channel.send(begEmbed)
         }
+    },
+
+    leaderboard: function(userArray, receivedMessage) {
+        userArray.sort((a, b) => {
+            return b.money - a.money
+        })
+
+        const leaderEmbed = new Discord.MessageEmbed()
+            .setColor("#ce2228")
+            .setTitle("<:star:760955933106241576>   Leaderboard   <:star:760955933106241576>")
+
+        let display = ""
+        for (let i = 0; i < userArray.length && i < 10; i++) {
+            display += (i + 1) + ") **" + userArray[i].tag + "** - $" + userArray[i].money + "\n"
+        }
+        leaderEmbed.setDescription(display)
+
+        receivedMessage.channel.send(leaderEmbed)
     },
 
     cointoss: function(userBase, user, receivedMessage, args) {

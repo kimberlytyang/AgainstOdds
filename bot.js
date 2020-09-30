@@ -6,6 +6,7 @@ const client = new Discord.Client()
 
 const prefix = "!"
 let userBase = {}
+let userArray = []
 
 client.on("ready", () => {
     initUserBase()
@@ -52,6 +53,11 @@ function initUserBase() {
     if (dataFile !== "") {
         userBase = JSON.parse(dataFile)
     }
+    for (var user in userBase) {
+        if (userBase.hasOwnProperty(user)) {
+            userArray.push(userBase[user])
+        }
+    }
 }
 
 function initDeck() {
@@ -84,18 +90,20 @@ function initDeck() {
     fs.writeFileSync("./deck.json", JSON.stringify(deck, null, 4))
 }
 
-function getUser(authorID) {
-    if (!userBase[authorID]) {
+function getUser(author) {
+    if (!userBase[author.id]) {
         let person = {
+            tag:author.username,
             money:1000,
-            soap:0,
-            toiletpaper:0,
+            present:0,
+            scissors:0,
         }
-        userBase[authorID] = {...person}
+        userBase[author.id] = {...person}
+        userArray.push(person)
         fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
     }
 
-    return userBase[authorID]
+    return userBase[author.id]
 }
 
 client.on("message", (receivedMessage) => {
@@ -108,7 +116,7 @@ client.on("message", (receivedMessage) => {
 	const command = split[0]
     const args = split.slice(1)
 
-    let user = getUser(receivedMessage.author.id)
+    let user = getUser(receivedMessage.author)
     
     switch (command) {
         case "help":
@@ -144,6 +152,15 @@ client.on("message", (receivedMessage) => {
             } catch (error) {
                 receivedMessage.channel.send("Error! Something went wrong :(")
                 console.log("ERROR: beg option (general)")
+                console.log(error)
+            }
+            break
+        case "leaderboard":
+            try {
+                options.leaderboard(userArray, receivedMessage)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: leaderboard option (general)")
                 console.log(error)
             }
             break
