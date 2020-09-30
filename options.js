@@ -11,7 +11,7 @@ module.exports = {
                 { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
                 { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!beg`", },
             )
-        receivedMessage.channel.send(asd)
+        receivedMessage.channel.send(helpEmbed)
     },
 
     bank: function(userBase, user, receivedMessage) {
@@ -394,197 +394,241 @@ module.exports = {
 
         let startMoney = user.money
 
-        user.money = parseInt(user.money) - bet
-        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-        
-        let deck = JSON.parse(fs.readFileSync("./deck.json", "utf8"))
-        let player1 = deck[Math.floor(Math.random() * 52)]
-        let player2 = deck[Math.floor(Math.random() * 52)]
-        let dealer1 = deck[Math.floor(Math.random() * 52)]
-        let dealer2 = deck[Math.floor(Math.random() * 52)]
+        try {
+            user.money = parseInt(user.money) - bet
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            
+            let deck = JSON.parse(fs.readFileSync("./deck.json", "utf8"))
+            let player1 = deck[Math.floor(Math.random() * 52)]
+            let player2 = deck[Math.floor(Math.random() * 52)]
+            let dealer1 = deck[Math.floor(Math.random() * 52)]
+            let dealer2 = deck[Math.floor(Math.random() * 52)]
 
-        let playerCards = [{...player1}, {...player2}]
-        let dealerCards = [{...dealer1}, {...dealer2}]
+            let playerCards = [{...player1}, {...player2}]
+            let dealerCards = [{...dealer1}, {...dealer2}]
 
-        const results = new Discord.MessageEmbed()
-            .setColor("#ce2228")
-            .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Results   <:moneybag:753937876399685653>")
 
-        const game = new Discord.MessageEmbed()
-            .setColor("#ce2228")
-            .setTitle("Blackjack")
-            .setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
-            .setFooter("Player Total: " + cardsTotal(playerCards))
-        receivedMessage.channel.send(game).then((message) => {
-            let pTotal = cardsTotal(playerCards)
-            let dTotal = cardsTotal(dealerCards)
-            if (dTotal === 21 && pTotal === 21) {
-                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
-                game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
-                message.edit(game)
-                user.money = parseInt(user.money) + bet
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                results.setDescription("**Both got Blackjack!**")
-                results.addFields(
-                    { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + balanceCheck(userBase, user), },
-                )
-                receivedMessage.channel.send(results)
-                return
-            } else if (dTotal === 21 && pTotal < 21) {
-                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
-                game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
-                message.edit(game)                
-                results.setDescription("**Dealer got Blackjack!**")
-                results.addFields(
-                    { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                )
-                receivedMessage.channel.send(results)
-                return
-            } else if (dTotal < 21 && pTotal === 21) {
-                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
-                game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
-                message.edit(game)
-                user.money = parseInt(user.money) + (bet * 3)
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                results.setDescription("**You got Blackjack!**")
-                results.addFields(
-                    { name: "You Won `3x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                )
-                receivedMessage.channel.send(results)
-                return
-            }
-
-            message.react("755603324400828467").then(() => message.react("❌")).then(() => message.react("2️⃣"))
-            const hitFilter = (reaction, person) =>
-                (reaction.emoji.name === "greencheck" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏩" && person.id === message.author.id)
-            const standFilter = (reaction, person) =>
-                (reaction.emoji.name === "❌" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏭" && person.id === message.author.id)
-            const doubleFilter = (reaction, person) =>
-                reaction.emoji.name === "2️⃣" && person.id === receivedMessage.author.id
-            const hit = message.createReactionCollector(hitFilter, {
-                time:60000,
-            })
-            const stand = message.createReactionCollector(standFilter, {
-                time:60000,
-                max:1,
-            })
-            const double = message.createReactionCollector(doubleFilter, {
-                time:60000,
-                max:1,
-            })
-
-            hit.on("collect", () => {
-                if (message.reactions.cache.get("2️⃣")) {
-                    double.stop()
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
-                }
-                
-                let newCard = deck[Math.floor(Math.random() * 52)]
-                playerCards.push({...newCard})
-                pTotal = cardsTotal(playerCards)
-                if (pTotal > 21) {
+            const game = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Blackjack")
+                .setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
+                .setFooter("Player Total: " + cardsTotal(playerCards))
+            receivedMessage.channel.send(game).then((message) => {
+                let pTotal = cardsTotal(playerCards)
+                let dTotal = cardsTotal(dealerCards)
+                if (dTotal === 21 && pTotal === 21) {
                     game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
                     game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
                     message.edit(game)
-                    results.setDescription("**You BUST!**")
-                    results.addFields(
-                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                    )
-                    receivedMessage.channel.send(results)
-                    removeReactions(receivedMessage, message)
-                    hit.stop()
-                    stand.stop()
-                    double.stop()
-                    return
-                } else if (pTotal === 21) {
-                    message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
-                } else {
-                    game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
-                    game.setFooter("Player Total: " + pTotal)
-                    message.edit(game)
-                    removeReactions(receivedMessage, message)
-                }
-            })
-
-            stand.on("collect", () => {
-                if (message.reactions.cache.get("2️⃣")) {
-                    double.stop()
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
-                }
-
-                while (cardsTotal(dealerCards) < 17) {
-                    newCard = deck[Math.floor(Math.random() * 52)]
-                    dealerCards.push({...newCard})
-                }
-                dTotal = cardsTotal(dealerCards)
-                game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
-                game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
-                message.edit(game)
-
-                if (dTotal > 21) {
-                    user.money = parseInt(user.money) + (bet * 2)
-                    fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                    results.setDescription("**Dealer BUST!**")
-                    results.addFields(
-                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                    )
-                    receivedMessage.channel.send(results)
-                } else if (pTotal > dTotal) {
-                    user.money = parseInt(user.money) + (bet * 2)
-                    fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                    results.setDescription("**You beat the dealer!**")
-                    results.addFields(
-                        { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                    )
-                    receivedMessage.channel.send(results)
-                } else if (pTotal < dTotal) {
-                    results.setDescription("**The dealer beat you!**")
-                    results.addFields(
-                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
-                    )
-                    receivedMessage.channel.send(results)
-                } else {
                     user.money = parseInt(user.money) + bet
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                    results.setDescription("**Both got Blackjack!**")
                     results.addFields(
                         { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + balanceCheck(userBase, user), },
                     )
                     receivedMessage.channel.send(results)
-                }
-
-                removeReactions(receivedMessage, message)
-                hit.stop()
-                stand.stop()
-                double.stop()
-                return
-            })
-
-            double.on("collect", () => {
-                if (parseInt(user.money) < bet) {
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
-                    const poorEmbed = new Discord.MessageEmbed()
-                        .setColor("#ce2228")
-                        .setTitle("Too Poor")
-                    receivedMessage.channel.send(poorEmbed)
-                } else if (playerCards.length > 2) {
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
-                    const denyDouble = new Discord.MessageEmbed()
-                        .setColor("#ce2228")
-                        .setTitle("No doubling down after first turn.")
-                    receivedMessage.channel.send(denyDouble)
-                } else {
-                    user.money = parseInt(user.money) - bet
+                    return
+                } else if (dTotal === 21 && pTotal < 21) {
+                    game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
+                    game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
+                    message.edit(game)                
+                    results.setDescription("**Dealer got Blackjack!**")
+                    results.addFields(
+                        { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                    )
+                    receivedMessage.channel.send(results)
+                    return
+                } else if (dTotal < 21 && pTotal === 21) {
+                    game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
+                    game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
+                    message.edit(game)
+                    user.money = parseInt(user.money) + (bet * 3)
                     fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                    bet = bet * 2
-                    message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
-                    message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error("Failed to remove reactions: ", error))).then(() => {
-                        if (cardsTotal(playerCards) < 21) {
-                            message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
-                        }
-                    })
+                    results.setDescription("**You got Blackjack!**")
+                    results.addFields(
+                        { name: "You Won `3x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                    )
+                    receivedMessage.channel.send(results)
+                    return
                 }
+
+                message.react("755603324400828467").then(() => message.react("❌")).then(() => message.react("2️⃣"))
+                const hitFilter = (reaction, person) =>
+                    (reaction.emoji.name === "greencheck" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏩" && person.id === message.author.id)
+                const standFilter = (reaction, person) =>
+                    (reaction.emoji.name === "❌" && person.id === receivedMessage.author.id) || (reaction.emoji.name === "⏭" && person.id === message.author.id)
+                const doubleFilter = (reaction, person) =>
+                    reaction.emoji.name === "2️⃣" && person.id === receivedMessage.author.id
+                const hit = message.createReactionCollector(hitFilter, {
+                    time:60000,
+                })
+                const stand = message.createReactionCollector(standFilter, {
+                    time:60000,
+                    max:1,
+                })
+                const double = message.createReactionCollector(doubleFilter, {
+                    time:60000,
+                    max:1,
+                })
+
+                hit.on("collect", () => {
+                    try {
+                        if (message.reactions.cache.get("2️⃣")) {
+                            double.stop()
+                            message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                        }
+                        
+                        let newCard = deck[Math.floor(Math.random() * 52)]
+                        playerCards.push({...newCard})
+                        pTotal = cardsTotal(playerCards)
+                        if (pTotal > 21) {
+                            game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
+                            game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
+                            message.edit(game)
+                            results.setDescription("**You BUST!**")
+                            results.addFields(
+                                { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                            )
+                            receivedMessage.channel.send(results)
+                            removeReactions(receivedMessage, message)
+                            hit.stop()
+                            stand.stop()
+                            double.stop()
+                            return
+                        } else if (pTotal === 21) {
+                            message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
+                        } else {
+                            game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + getDealerHidden(dealer1))
+                            game.setFooter("Player Total: " + pTotal)
+                            message.edit(game)
+                            removeReactions(receivedMessage, message)
+                        }
+                    } catch (error) {
+                        hit.stop()
+                        stand.stop()
+                        double.stop()
+
+                        receivedMessage.channel.send("Error! Something went wrong :(")
+                        user.money = startMoney
+                        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                        console.log("ERROR: blackjack option hit collector (refund)")
+                        console.log(error)
+                    }
+                })
+
+                stand.on("collect", () => {
+                    try {
+                        if (message.reactions.cache.get("2️⃣")) {
+                            double.stop()
+                            message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                        }
+
+                        while (cardsTotal(dealerCards) < 17) {
+                            newCard = deck[Math.floor(Math.random() * 52)]
+                            dealerCards.push({...newCard})
+                        }
+                        dTotal = cardsTotal(dealerCards)
+                        game.setDescription("Player Cards:\n" + formatCards(playerCards) + "\nDealer Cards:\n" + formatCards(dealerCards))
+                        game.setFooter("Player Total: " + pTotal + "\nDealer Total: " + dTotal)
+                        message.edit(game)
+
+                        if (dTotal > 21) {
+                            user.money = parseInt(user.money) + (bet * 2)
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                            results.setDescription("**Dealer BUST!**")
+                            results.addFields(
+                                { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                            )
+                            receivedMessage.channel.send(results)
+                        } else if (pTotal > dTotal) {
+                            user.money = parseInt(user.money) + (bet * 2)
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                            results.setDescription("**You beat the dealer!**")
+                            results.addFields(
+                                { name: "You Won `2x` on a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                            )
+                            receivedMessage.channel.send(results)
+                        } else if (pTotal < dTotal) {
+                            results.setDescription("**The dealer beat you!**")
+                            results.addFields(
+                                { name: "You Lost a $" + bet + " Bet!", value: "New Balance: $" + balanceCheck(userBase, user), },
+                            )
+                            receivedMessage.channel.send(results)
+                        } else {
+                            user.money = parseInt(user.money) + bet
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                            results.addFields(
+                                { name: "You Tied a $" + bet + " Bet!", value: "Balance: $" + balanceCheck(userBase, user), },
+                            )
+                            receivedMessage.channel.send(results)
+                        }
+
+                        removeReactions(receivedMessage, message)
+                        hit.stop()
+                        stand.stop()
+                        double.stop()
+                        return
+                    } catch (error) {
+                        hit.stop()
+                        stand.stop()
+                        double.stop()
+
+                        receivedMessage.channel.send("Error! Something went wrong :(")
+                        user.money = startMoney
+                        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                        console.log("ERROR: blackjack option stand collector (refund)")
+                        console.log(error)
+                    }
+                })
+
+                double.on("collect", () => {
+                    try {
+                        if (parseInt(user.money) < bet) {
+                            message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                            const poorEmbed = new Discord.MessageEmbed()
+                                .setColor("#ce2228")
+                                .setTitle("Too Poor")
+                            receivedMessage.channel.send(poorEmbed)
+                        } else if (playerCards.length > 2) {
+                            message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                            const denyDouble = new Discord.MessageEmbed()
+                                .setColor("#ce2228")
+                                .setTitle("No doubling down after first turn.")
+                            receivedMessage.channel.send(denyDouble)
+                        } else {
+                            user.money = parseInt(user.money) - bet
+                            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                            bet = bet * 2
+                            message.reactions.cache.get("2️⃣").remove().catch(error => console.error("Failed to remove reactions: ", error))
+                            message.react("⏩").then(() => message.reactions.cache.get("⏩").remove().catch(error => console.error("Failed to remove reactions: ", error))).then(() => {
+                                if (cardsTotal(playerCards) < 21) {
+                                    message.react("⏭").then(() => message.reactions.cache.get("⏭").remove().catch(error => console.error("Failed to remove reactions: ", error)))
+                                }
+                            })
+                        }
+                    } catch (error) {
+                        hit.stop()
+                        stand.stop()
+                        double.stop()
+
+                        receivedMessage.channel.send("Error! Something went wrong :(")
+                        user.money = startMoney
+                        fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                        console.log("ERROR: blackjack option double collector (refund)")
+                        console.log(error)
+                    }
+                })
             })
-        })
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: blackjack option (refund)")
+            console.log(error)
+        }
     },
 }
 

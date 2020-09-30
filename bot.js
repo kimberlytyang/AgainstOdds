@@ -186,4 +186,4 @@ client.on("message", (receivedMessage) => {
     }
 })
 
-client.login(process.env.CLIENT_TOKEN) // replace with token
+client.login(process.env.CLIENT_TOKEN)
