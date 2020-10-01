@@ -1,5 +1,6 @@
 const fs = require('fs')
 const Discord = require('discord.js')
+const { parse } = require('path')
 const MAX_MONEY = 1000000000000
 
 module.exports = {
@@ -9,7 +10,7 @@ module.exports = {
             .setTitle("Help Menu")
             .addFields(
                 { name: "<:game_die:753436658556338206> Game Options", value: "`!cointoss` `!guesscard`\n`!slot` `!blackjack`", },
-                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!shop` `!open`\n`!beg` `!leaderboard`", },
+                { name: "<:moneybag:753439669471150140> Player Options", value: "`!bank` `!beg` `!leader`\n`!buy` `!open` `!sell`", },
             )
         receivedMessage.channel.send(helpEmbed)
     },
@@ -25,7 +26,7 @@ module.exports = {
         } else if (parseInt(user.money) < 10000) {
             wealth = "*looking average...*"
         } else if (parseInt(user.money) < 25000) {
-            wealth = "*still not as rich as me...*"
+            wealth = "*still not that rich...*"
         } else if (parseInt(user.money) < 50000) {
             wealth = "*why do you have so much?*"
         } else if (parseInt(user.money) < 100000) {
@@ -38,95 +39,11 @@ module.exports = {
 
         const bankEmbed = new Discord.MessageEmbed()
             .setColor("#ce2228")
-            .setTitle("<:bank:753916288744554526>   " + receivedMessage.author.username + "\'s Bank   <:bank:753916288744554526>")
-            .setDescription("**Money:** $" + balanceCheck(userBase, user) + "\n<:gift:760966578979602443>: " + user.present + "\n<:scissors:760966578979602443>: " + user.scissors)
+            .setTitle("<:bank:753916288744554526>   " + user.name + "\'s Bank   <:bank:753916288744554526>")
+            .setDescription("**Money:** $" + balanceCheck(userBase, user) + "\n<:gift:760966578979602443>: " + user.present + "<:clear:756342610213470299><:teddy_bear:760981333958721556>: " + user.teddybear + "\n<:scissors:760966578979602443>: " + user.scissors + "<:clear:756342610213470299><:gem:760982878284021760>: " + user.diamond)
         
         receivedMessage.channel.send(bankEmbed)
         receivedMessage.channel.send(wealth)
-    },
-
-    shop: function(userBase, user, receivedMessage, args) {
-        let num = parseInt(args[0])
-        let quantity = parseInt(args[1])
-        if (args.length != 2 || !num || !quantity) {
-            const shopEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !shop <item#> <quantity>" + "\n**1) $100 `Present` <:gift:760966578979602443>**\n**2) $300 `Scissors` <:scissors:760966578979602443>**\n**3) $350 `Special Bundle` <:gift:760966578979602443> + <:scissors:760966578979602443>**")
-                .setFooter("Open presents for more items!")
-            receivedMessage.channel.send(shopEmbed)
-            return
-        } else if (quantity < 1) {
-            const quantityEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Invalid Quantity")
-            receivedMessage.channel.send(quantityEmbed)
-            return
-        } else if (num < 1 || num > 3) {
-            const boundsEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Invalid Item")
-            receivedMessage.channel.send(boundsEmbed)
-            return
-        }
-
-        let price = 0
-        let item = null
-        if (num === 1) {
-            price = 100
-            item = "Present"
-        } else if (num == 2) {
-            price = 300
-            item = "Scissors"
-        } else {
-            price = 350
-            item = "Special Bundle"
-        }
-        
-        let total = price * quantity
-
-        if (total > parseInt(user.money)) {
-            const poorEmbed = new Discord.MessageEmbed()
-                .setColor("#ce2228")
-                .setTitle("Too Poor")
-            receivedMessage.channel.send(poorEmbed)
-        } else {
-            let startMoney = user.money
-            let startPresent = user.present
-            let startScissors = user.scissors
-
-            if (num == 1) {
-                user.present = parseInt(user.present) + quantity
-                user.money = parseInt(user.money) - parseInt(total)
-            } else if (num == 2) {
-                user.scissors = parseInt(user.scissors) + quantity
-                user.money = parseInt(user.money) - parseInt(total)
-            } else {
-                user.present = parseInt(user.present) + quantity
-                user.scissors = parseInt(user.scissors) + quantity
-                user.money = parseInt(user.money) - parseInt(total)
-            }
-
-            try {
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-
-                const purchases = new Discord.MessageEmbed()
-                    .setColor("#ce2228")
-                    .setTitle("<:moneybag:753937876399685653>   " + receivedMessage.author.username + "\'s Purchase   <:moneybag:753937876399685653>")
-                    .addFields(
-                        { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for coming <:woman_bowing:753954248764686379>", },
-                    )
-                receivedMessage.channel.send(purchases)
-            } catch (error) {
-                receivedMessage.channel.send("Error! Something went wrong :(")
-                user.money = startMoney
-                user.present = startPresent
-                user.scissors = startScissors
-                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
-                console.log("ERROR: shop option (refund)")
-                console.log(error)
-            }
-        }
     },
 
     beg: function(userBase, user, receivedMessage) {
@@ -160,11 +77,245 @@ module.exports = {
 
         let display = ""
         for (let i = 0; i < userArray.length && i < 10; i++) {
-            display += (i + 1) + ") **" + userArray[i].tag + "** - $" + userArray[i].money + "\n"
+            display += (i + 1) + ") **" + userArray[i].tag + "** - $" + userArray[i].money
+            if (i === 0) {
+                display += " <:first_place:760977910046785617>"
+            } else if (i === 1) {
+                display += " <:second_place:760977960450654219>"
+            } else if (i === 2) {
+                display += " <:third_place:760978009724420096>"
+            }
+            display += "\n"
         }
         leaderEmbed.setDescription(display)
 
         receivedMessage.channel.send(leaderEmbed)
+    },
+
+    buy: function(userBase, user, receivedMessage, args) {
+        let num = parseInt(args[0])
+        let quantity = parseInt(args[1])
+        if (args.length != 2 || !num || !quantity) {
+            const buyEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:shopping_cart:753943631764783215>   Items for Sale   <:shopping_cart:753943631764783215>")
+                .setDescription("**Command:** !buy <item#> <quantity>" + "\n**1) $100 `Present` <:gift:760966578979602443>**\n**2) $300 `Scissors` <:scissors:760966578979602443>**\n**3) $350 `Special Bundle` <:gift:760966578979602443> + <:scissors:760966578979602443>**")
+                .setFooter("Open presents with scissors for more items!")
+            receivedMessage.channel.send(buyEmbed)
+            return
+        } else if (quantity < 1) {
+            const quantityEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Quantity")
+            receivedMessage.channel.send(quantityEmbed)
+            return
+        } else if (num < 1 || num > 3) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Item")
+            receivedMessage.channel.send(boundsEmbed)
+            return
+        }
+
+        let price = 0
+        let item = ""
+        if (num === 1) {
+            price = 100
+            item = "Present"
+        } else if (num == 2) {
+            price = 300
+            item = "Scissors"
+        } else {
+            price = 350
+            item = "Special Bundle"
+        }
+        
+        let total = price * quantity
+
+        if (total > parseInt(user.money)) {
+            const poorEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Too Poor")
+            receivedMessage.channel.send(poorEmbed)
+        } else {
+            let startMoney = user.money
+            let startPresent = user.present
+            let startScissors = user.scissors
+
+            try {
+                if (num == 1) {
+                    user.present = parseInt(user.present) + quantity
+                    user.money = parseInt(user.money) - parseInt(total)
+                } else if (num == 2) {
+                    user.scissors = parseInt(user.scissors) + quantity
+                    user.money = parseInt(user.money) - parseInt(total)
+                } else {
+                    user.present = parseInt(user.present) + quantity
+                    user.scissors = parseInt(user.scissors) + quantity
+                    user.money = parseInt(user.money) - parseInt(total)
+                }
+
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+
+                const purchases = new Discord.MessageEmbed()
+                    .setColor("#ce2228")
+                    .setTitle("<:moneybag:753937876399685653>   " + user.name + "\'s Purchase   <:moneybag:753937876399685653>")
+                    .addFields(
+                        { name: "You bought `" + item + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for coming <:woman_bowing:753954248764686379>", },
+                    )
+                receivedMessage.channel.send(purchases)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                user.money = startMoney
+                user.present = startPresent
+                user.scissors = startScissors
+                fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+                console.log("ERROR: buy option (refund)")
+                console.log(error)
+            }
+        }
+    },
+
+    open: function(userBase, user, receivedMessage, args) {
+        let quantity = parseInt(args[0])
+        if (args.length != 1 || !quantity) {
+            const openEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:christmas_tree:761011715197763624>   Open Presents   <:christmas_tree:761011715197763624>")
+                .setDescription("**Command:** !open <quantity>\n<:gift:760966578979602443>: " + user.present + "<:clear:756342610213470299><:scissors:760966578979602443>: " + user.scissors)
+                .setFooter("Sell items for more money!")
+            receivedMessage.channel.send(openEmbed)
+            return
+        } else if (quantity < 1 || parseInt(user.presents) < quantity || parseInt(user.scissors) < quantity) {
+            const quantityEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Quantity")
+            receivedMessage.channel.send(quantityEmbed)
+            return
+        }
+
+        let startMoney = user.money
+        let startPresent = user.present
+        let startScissors = user.scissors
+        let startTeddyBear = user.teddybear
+        let startDiamond = user.diamond
+
+        try {
+            user.present = parseInt(user.present) - quantity
+            user.scissors = parseInt(user.scissors) - quantity
+
+            let itemCollector = {
+                teddybear:0,
+                money:0,
+                present:0,
+                scissors:0,
+                diamond:0,
+            }
+            for (let i = 0; i < quantity; i++) {
+                let itemResult = getPresent()
+                let itemName = itemResult[0]
+                switch (itemName) {
+                    case "Present":
+                        itemCollector.present += itemResult[1]
+                        break
+                    case "Scissors":
+                        itemCollector.scissors += itemResult[1]
+                        break
+                    case "Teddy Bear":
+                        itemCollector.teddybear += itemResult[1]
+                        break
+                    case "Diamond":
+                        itemCollector.diamond += itemResult[1]
+                        break
+                    case "Money":
+                        itemCollector.money += itemResult[1]
+                        break
+                }
+            }
+
+            user.present = parseInt(user.present) + parseInt(itemCollector.present)
+            user.scissors = parseInt(user.scissors) + parseInt(itemCollector.scissors)
+            user.teddybear = parseInt(user.teddybear) + parseInt(itemCollector.teddybear)
+            user.diamond = parseInt(user.diamond) + parseInt(itemCollector.diamond)
+            user.money = parseInt(user.money) + parseInt(itemCollector.money)
+
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+
+            let itemString = getFormattedPresents(itemCollector)
+            const results = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   Present Contents   <:moneybag:753937876399685653>")
+                .setDescription(itemString + "\n<:gift:760966578979602443>: " + user.present + "<:clear:756342610213470299><:scissors:760966578979602443>: " + user.scissors)
+            receivedMessage.channel.send(results)
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            user.present = startPresent
+            user.scissors = startScissors
+            user.teddybear = startTeddyBear
+            user.diamond = startDiamond
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: open option (refund)")
+            console.log(error)
+        }
+    },
+
+    sell: function(userBase, user, receivedMessage, args) {
+        let num = parseInt(args[0])
+        let quantity = parseInt(args[1])
+        if (args.length != 2 || !num || !quantity) {
+            const sellEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:shopping_cart:753943631764783215>   Accepted Items   <:shopping_cart:753943631764783215>")
+                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $60 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
+            receivedMessage.channel.send(sellEmbed)
+            return
+        } else if (quantity < 1 || (num === 1 && parseInt(user.teddybear) < quantity) || (num === 2 && parseInt(user.diamond) < quantity)) {
+            const quantityEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Quantity")
+            receivedMessage.channel.send(quantityEmbed)
+            return
+        } else if (num < 1 || num > 2) {
+            const boundsEmbed = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("Invalid Item")
+            receivedMessage.channel.send(boundsEmbed)
+            return
+        }
+
+        let startMoney = user.money
+        let startTeddyBear = user.teddybear
+        let startDiamond = user.diamond
+
+        try {
+            let itemName = ""
+            if (num === 1) {
+                itemName = "Teddy Bear"
+                user.teddybear = parseInt(user.teddybear) - quantity
+                user.money = parseInt(user.money) + (quantity * 60)
+            } else {
+                itemName = "Diamond"
+                user.diamond = parseInt(user.diamond) - quantity
+                user.money = parseInt(user.money) + (quantity * 5000)
+            }
+
+            const purchases = new Discord.MessageEmbed()
+                .setColor("#ce2228")
+                .setTitle("<:moneybag:753937876399685653>   " + user.name + "\'s Profits   <:moneybag:753937876399685653>")
+                .addFields(
+                    { name: "You sold `" + itemName + "` x" + quantity, value: "New Balance: $" + balanceCheck(userBase, user) + "\nThank you for selling <:woman_bowing:753954248764686379>", },
+                )
+            receivedMessage.channel.send(purchases)
+        } catch (error) {
+            receivedMessage.channel.send("Error! Something went wrong :(")
+            user.money = startMoney
+            user.teddybear = startTeddyBear
+            user.diamond = startDiamond
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
+            console.log("ERROR: sell option (refund)")
+            console.log(error)
+        }
     },
 
     cointoss: function(userBase, user, receivedMessage, args) {
@@ -648,6 +799,79 @@ module.exports = {
             console.log(error)
         }
     },
+}
+
+function getPresent() {
+    let item = ""
+    let itemQuantity = 0
+    let randItem = Math.floor(Math.random() * 100)
+    let randNum = Math.floor(Math.random() * 100)
+    if (randItem < 40) {
+        item = "Teddy Bear"
+        if (randNum < 30) {
+            itemQuantity = 1
+        } else if (randNum < 70) {
+            itemQuantity = 2
+        } else if (randNum < 95) {
+            itemQuantity = 5
+        } else {
+            itemQuantity = 10
+        }
+    } else if (randItem < 60) {
+        item = "Money"
+        if (randNum < 30) {
+            itemQuantity = Math.floor(Math.random() * 6) * 10 + 100
+        } else if (randNum < 70) {
+            itemQuantity = Math.floor(Math.random() * 16) * 10 + 150
+        } else if (randNum < 95) {
+            itemQuantity = Math.floor(Math.random() * 21) * 10 + 300
+        } else {
+            itemQuantity = Math.floor(Math.random() * 141) * 10 + 800
+        }
+    } else if (randItem < 90) {
+        item = "Present"
+        if (randNum < 30) {
+            itemQuantity = 1
+        } else if (randNum < 70) {
+            itemQuantity = 2
+        } else if (randNum < 95) {
+            itemQuantity = 5
+        } else {
+            itemQuantity = Math.floor(Math.random() * 3) + 8
+        }
+    } else if (randItem < 97) {
+        item = "Scissors"
+        if (randNum < 30) {
+            itemQuantity = 1
+        } else if (randNum < 70) {
+            itemQuantity = 2
+        } else if (randNum < 95) {
+            itemQuantity = 5
+        } else {
+            itemQuantity = Math.floor(Math.random() * 3) + 8
+        }
+    } else {
+        item = "Diamond"
+        if (randNum < 60) {
+            itemQuantity = 1
+        } else if (randNum < 90) {
+            itemQuantity = 2
+        } else {
+            itemQuantity = 5
+        }
+    }
+
+    return [item, itemQuantity]
+}
+
+function getFormattedPresents(collector) {
+    let itemString = ""
+    itemString += "**You found `Present` x" + collector.present + "**\n"
+    itemString += "**You found `Scissors` x" + collector.scissors + "**\n"
+    itemString += "**You found `Teddy Bear` x" + collector.teddybear + "**\n"
+    itemString += "**You found `Diamond` x" + collector.diamond + "**\n"
+    itemString += "**You found `$" + collector.money + "`**\n"
+    return itemString
 }
 
 function slotTopBar() {

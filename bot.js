@@ -93,10 +93,12 @@ function initDeck() {
 function getUser(author) {
     if (!userBase[author.id]) {
         let person = {
-            tag:author.username,
+            name:author.username,
             money:1000,
             present:0,
             scissors:0,
+            teddybear:0,
+            diamond:0,
         }
         userBase[author.id] = {...person}
         userArray.push(person)
@@ -137,15 +139,6 @@ client.on("message", (receivedMessage) => {
                 console.log(error)
             }
             break
-        case "shop":
-            try {
-                options.shop(userBase, user, receivedMessage, args)
-            } catch (error) {
-                receivedMessage.channel.send("Error! Something went wrong :(")
-                console.log("ERROR: shop option (general)")
-                console.log(error)
-            }
-            break
         case "beg":
             try {
                 options.beg(userBase, user, receivedMessage)
@@ -155,12 +148,39 @@ client.on("message", (receivedMessage) => {
                 console.log(error)
             }
             break
-        case "leaderboard":
+        case "leader":
             try {
                 options.leaderboard(userArray, receivedMessage)
             } catch (error) {
                 receivedMessage.channel.send("Error! Something went wrong :(")
                 console.log("ERROR: leaderboard option (general)")
+                console.log(error)
+            }
+            break
+        case "buy":
+            try {
+                options.buy(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: buy option (general)")
+                console.log(error)
+            }
+            break
+        case "open":
+            try {
+                options.open(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: open option (general)")
+                console.log(error)
+            }
+            break
+        case "sell":
+            try {
+                options.sell(userBase, user, receivedMessage, args)
+            } catch (error) {
+                receivedMessage.channel.send("Error! Something went wrong :(")
+                console.log("ERROR: sell option (general)")
                 console.log(error)
             }
             break
