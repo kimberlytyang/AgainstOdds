@@ -267,7 +267,7 @@ module.exports = {
             const sellEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("<:shopping_cart:753943631764783215>   Accepted Items   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $60 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
+                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $50 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
             receivedMessage.channel.send(sellEmbed)
             return
         } else if (quantity < 1 || (num === 1 && parseInt(user.teddybear) < quantity) || (num === 2 && parseInt(user.diamond) < quantity)) {
@@ -293,7 +293,7 @@ module.exports = {
             if (num === 1) {
                 itemName = "Teddy Bear"
                 user.teddybear = parseInt(user.teddybear) - quantity
-                user.money = parseInt(user.money) + (quantity * 60)
+                user.money = parseInt(user.money) + (quantity * 50)
             } else {
                 itemName = "Diamond"
                 user.diamond = parseInt(user.diamond) - quantity
@@ -806,18 +806,16 @@ function getPresent() {
     let itemQuantity = 0
     let randItem = Math.floor(Math.random() * 100)
     let randNum = Math.floor(Math.random() * 100)
-    if (randItem < 40) {
+    if (randItem < 45) {
         item = "Teddy Bear"
-        if (randNum < 30) {
+        if (randNum < 50) {
             itemQuantity = 1
         } else if (randNum < 70) {
             itemQuantity = 2
-        } else if (randNum < 95) {
-            itemQuantity = 5
         } else {
-            itemQuantity = 10
+            itemQuantity = 4
         }
-    } else if (randItem < 60) {
+    } else if (randItem < 70) {
         item = "Money"
         if (randNum < 30) {
             itemQuantity = Math.floor(Math.random() * 6) * 10 + 100
@@ -826,38 +824,36 @@ function getPresent() {
         } else if (randNum < 95) {
             itemQuantity = Math.floor(Math.random() * 21) * 10 + 300
         } else {
-            itemQuantity = Math.floor(Math.random() * 141) * 10 + 800
+            itemQuantity = Math.floor(Math.random() * 71) * 10 + 500
         }
-    } else if (randItem < 90) {
+    } else if (randItem < 93) {
         item = "Present"
-        if (randNum < 30) {
+        if (randNum < 40) {
             itemQuantity = 1
         } else if (randNum < 70) {
             itemQuantity = 2
         } else if (randNum < 95) {
-            itemQuantity = 5
+            itemQuantity = 3
         } else {
-            itemQuantity = Math.floor(Math.random() * 3) + 8
+            itemQuantity = Math.floor(Math.random() * 2) + 4
         }
-    } else if (randItem < 97) {
+    } else if (randItem < 98) {
         item = "Scissors"
-        if (randNum < 30) {
+        if (randNum < 40) {
             itemQuantity = 1
         } else if (randNum < 70) {
             itemQuantity = 2
         } else if (randNum < 95) {
-            itemQuantity = 5
+            itemQuantity = 3
         } else {
-            itemQuantity = Math.floor(Math.random() * 3) + 8
+            itemQuantity = Math.floor(Math.random() * 2) + 4
         }
     } else {
         item = "Diamond"
-        if (randNum < 60) {
+        if (randNum < 95) {
             itemQuantity = 1
-        } else if (randNum < 90) {
-            itemQuantity = 2
         } else {
-            itemQuantity = 5
+            itemQuantity = 2
         }
     }
 
