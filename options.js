@@ -267,7 +267,7 @@ module.exports = {
             const sellEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("<:shopping_cart:753943631764783215>   Accepted Items   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $75 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
+                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $75 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $7000 `Diamond` <:gem:760982878284021760>**")
             receivedMessage.channel.send(sellEmbed)
             return
         } else if (quantity < 1 || (num === 1 && parseInt(user.teddybear) < quantity) || (num === 2 && parseInt(user.diamond) < quantity)) {
