@@ -77,7 +77,7 @@ module.exports = {
 
         let display = ""
         for (let i = 0; i < userArray.length && i < 10; i++) {
-            display += (i + 1) + ") **" + userArray[i].tag + "** - $" + userArray[i].money
+            display += (i + 1) + ") **" + userArray[i].name + "** - $" + userArray[i].money
             if (i === 0) {
                 display += " <:first_place:760977910046785617>"
             } else if (i === 1) {
@@ -267,7 +267,7 @@ module.exports = {
             const sellEmbed = new Discord.MessageEmbed()
                 .setColor("#ce2228")
                 .setTitle("<:shopping_cart:753943631764783215>   Accepted Items   <:shopping_cart:753943631764783215>")
-                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $50 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
+                .setDescription("**Command:** !sell <item#> <quantity>\n**1) $75 `Teddy Bear` <:teddy_bear:760981333958721556>**\n**2) $5000 `Diamond` <:gem:760982878284021760>**")
             receivedMessage.channel.send(sellEmbed)
             return
         } else if (quantity < 1 || (num === 1 && parseInt(user.teddybear) < quantity) || (num === 2 && parseInt(user.diamond) < quantity)) {
@@ -293,12 +293,14 @@ module.exports = {
             if (num === 1) {
                 itemName = "Teddy Bear"
                 user.teddybear = parseInt(user.teddybear) - quantity
-                user.money = parseInt(user.money) + (quantity * 50)
+                user.money = parseInt(user.money) + (quantity * 75)
             } else {
                 itemName = "Diamond"
                 user.diamond = parseInt(user.diamond) - quantity
                 user.money = parseInt(user.money) + (quantity * 5000)
             }
+
+            fs.writeFileSync("./data.json", JSON.stringify(userBase, null, 4))
 
             const purchases = new Discord.MessageEmbed()
                 .setColor("#ce2228")
@@ -810,7 +812,7 @@ function getPresent() {
         item = "Teddy Bear"
         if (randNum < 50) {
             itemQuantity = 1
-        } else if (randNum < 70) {
+        } else if (randNum < 85) {
             itemQuantity = 2
         } else {
             itemQuantity = 4
@@ -826,16 +828,14 @@ function getPresent() {
         } else {
             itemQuantity = Math.floor(Math.random() * 71) * 10 + 500
         }
-    } else if (randItem < 93) {
+    } else if (randItem < 90) {
         item = "Present"
-        if (randNum < 40) {
+        if (randNum < 50) {
             itemQuantity = 1
-        } else if (randNum < 70) {
+        } else if (randNum < 85) {
             itemQuantity = 2
-        } else if (randNum < 95) {
-            itemQuantity = 3
         } else {
-            itemQuantity = Math.floor(Math.random() * 2) + 4
+            itemQuantity = 3
         }
     } else if (randItem < 98) {
         item = "Scissors"
@@ -866,7 +866,7 @@ function getFormattedPresents(collector) {
     itemString += "**You found `Scissors` x" + collector.scissors + "**\n"
     itemString += "**You found `Teddy Bear` x" + collector.teddybear + "**\n"
     itemString += "**You found `Diamond` x" + collector.diamond + "**\n"
-    itemString += "**You found `$" + collector.money + "`**\n"
+    itemString += "**You found `Money` $" + collector.money + "**\n"
     return itemString
 }
 

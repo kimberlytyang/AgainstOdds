@@ -115,7 +115,7 @@ client.on("message", (receivedMessage) => {
     
     const withoutPrefix = receivedMessage.content.slice(prefix.length)
 	const split = withoutPrefix.split(" ")
-	const command = split[0]
+	const command = split[0].toLowerCase()
     const args = split.slice(1)
 
     let user = getUser(receivedMessage.author)
