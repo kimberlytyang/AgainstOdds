@@ -16,8 +16,9 @@ client.on("ready", () => {
 client.on("guildCreate", (guild) => {
     try {
         sendWelcome(guild)
-    } catch {
-        console.log("Error: Unable to send welcome message")
+    } catch (error) {
+        console.log("ERROR: server welcome")
+        console.log(error)
     }
 })
 
@@ -109,16 +110,22 @@ function getUser(author) {
 }
 
 client.on("message", (receivedMessage) => {
-    if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
-        return
-    }
+    try {
+        if (!receivedMessage.content.startsWith(prefix) || receivedMessage.author == client.user) {
+            return
+        }
+        
+        const withoutPrefix = receivedMessage.content.slice(prefix.length)
+        const split = withoutPrefix.split(" ")
+        const command = split[0].toLowerCase()
+        const args = split.slice(1)
     
-    const withoutPrefix = receivedMessage.content.slice(prefix.length)
-	const split = withoutPrefix.split(" ")
-	const command = split[0].toLowerCase()
-    const args = split.slice(1)
-
-    let user = getUser(receivedMessage.author)
+        let user = getUser(receivedMessage.author)
+    } catch (error) {
+        receivedMessage.channel.send("Error! Something went wrong :(")
+        console.log("ERROR: message event")
+        console.log(error)
+    }
     
     switch (command) {
         case "help":
